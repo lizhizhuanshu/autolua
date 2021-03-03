@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.4.1)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../libs/${ANDROID_ABI})
+
+#设置头文件搜索路径（和此txt同个路径的头文件无需设置）
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../../../../androidlua/src/main/jni/lua)
+
+
+LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../../../../androidlua/src/main/libs/${ANDROID_ABI})
+
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/viewer)
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/screen)

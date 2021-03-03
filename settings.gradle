@@ -1,0 +1,4 @@
+include ':autolua'
+include ':androidlua'
+include ':sample'
+rootProject.name = "autolua"

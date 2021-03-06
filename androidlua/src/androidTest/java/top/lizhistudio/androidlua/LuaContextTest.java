@@ -41,6 +41,19 @@ public class LuaContextTest {
         }
     }
 
+
+    @Test
+    public void test()
+    {
+        JavaObjectWrapperFactoryImplement.Builder builder  = new JavaObjectWrapperFactoryImplement.Builder();
+        builder.registerThrowable()
+                .registerInterface(Wife.class);
+        JavaObjectWrapperFactory factory = builder.build();
+
+        LuaContext context = new LuaContextImplement(factory);
+
+    }
+
     @Test
     public void testRegister()
     {

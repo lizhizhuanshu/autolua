@@ -1,13 +1,15 @@
-package top.lizhistudio.autolua;
+package top.lizhistudio.autolua.core;
 
-import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import top.lizhistudio.autolua.extend.Screen;
 import top.lizhistudio.autolua.rpc.ClientHandler;
@@ -16,38 +18,50 @@ import top.lizhistudio.autolua.rpc.message.Request;
 import top.lizhistudio.autolua.rpc.message.Response;
 import top.lizhistudio.autolua.rpc.transport.IServerSocket;
 import top.lizhistudio.autolua.rpc.transport.ServerTransport;
+import top.lizhistudio.autolua.rpc.transport.TSocket;
 import top.lizhistudio.autolua.rpc.transport.Transport;
 
 public class Server {
+    private static final String TAG = "Server";
+    public static final String AUTO_LUA_SERVICE_NAME = "AutoLua";
     private final Transport transport;
     private final ClientHandler clientHandler;
     private final ServiceHandler serviceHandler;
-    private final AtomicBoolean isRunning;
+    private final ExecutorService executorService;
+    private static Server self = null;
+
+    static {
+        System.loadLibrary("screen");
+    }
 
     public Server(Transport transport, ClientHandler clientHandler,ServiceHandler serviceHandler)
     {
         this.transport = transport;
         this.clientHandler = clientHandler;
         this.serviceHandler = serviceHandler;
-        isRunning = new AtomicBoolean(true);
+        executorService= Executors.newCachedThreadPool();
     }
 
     public void serve()
     {
-        while (isRunning.get())
+        while (true)
         {
             Object message = transport.receive();
-            if (message instanceof Request)
-            {
-                Request request = (Request) message;
-                if (request.serviceName == null && request.callID == 0)
-                    break;
-                serviceHandler.onReceive((Request)message);
-            }
-            else if(message instanceof Response)
-                clientHandler.onReceive((Response)message);
-            else
-                throw new RuntimeException("unknown message");
+            if (message instanceof Request &&
+                    ((Request)message).serviceName == null &&
+                    ((Request)message).callID == 0)
+                break;
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    if (message instanceof Request)
+                        serviceHandler.onReceive((Request)message);
+                    else if(message instanceof Response)
+                        clientHandler.onReceive((Response)message);
+                    else
+                        throw new RuntimeException("unknown message");
+                }
+            });
         }
     }
 
@@ -58,6 +72,33 @@ public class Server {
     {
         Class<?> aClass = Class.forName(className);
         return (LuaContextFactory) aClass.newInstance();
+    }
+
+
+    private static class PasswordProcurator implements ServerTransport.Procurator
+    {
+        private final String password;
+
+        public PasswordProcurator(@NonNull String password)
+        {
+            this.password = password;
+        }
+
+        @Override
+        public boolean isAccept(TSocket socket) {
+            try{
+                socket.setSoTimeout(2000);
+                Object o = socket.getInputStream().readObject();
+                boolean result = password.equals(o);
+                socket.getOutputStream().writeObject(result);
+                socket.setSoTimeout(0);
+                return result;
+            }catch (Throwable e)
+            {
+                return false;
+            }
+
+        }
     }
 
 
@@ -77,30 +118,38 @@ public class Server {
                 helpFormatter.printHelp("options",options);
             }else
             {
-
                 IServerSocket serverSocket;
                 if (commandLine.hasOption('p'))
                     serverSocket = new IServerSocket.NetSocketServer(Integer.parseInt(commandLine.getOptionValue('p')));
                 else
                     serverSocket = new IServerSocket.LocalSocketServer(commandLine.getOptionValue('l'));
-                Transport transport = new ServerTransport(serverSocket,commandLine.getOptionValue('v'));
+                Transport transport = new ServerTransport(serverSocket,
+                        new PasswordProcurator( commandLine.getOptionValue('v')));
                 ClientHandler clientHandler = new ClientHandler(transport);
                 ServiceHandler serviceHandler = new ServiceHandler(transport);
                 LuaContextFactory  luaContextFactory = createFactory(commandLine.getOptionValue('f'));
                 LuaInterpreter luaInterpreter = new LuaInterpreterImplement(luaContextFactory);
-                serviceHandler.register("AutoLua",LuaInterpreter.class,luaInterpreter);
-                Server server = new Server(transport,clientHandler,serviceHandler);
+                serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
+                self = new Server(transport,clientHandler,serviceHandler);
                 System.out.println(1);
-                server.serve();
+                self.serve();
                 Screen.getDefault().destroy();
                 System.exit(0);
             }
         }catch (Throwable e)
         {
-            Log.e("Server","error",e);
+            e.printStackTrace(System.err);
             System.out.println(0);
         }
     }
 
+    public static Server getInstance()
+    {
+        return self;
+    }
 
+    public ClientHandler getClientHandler()
+    {
+        return clientHandler;
+    }
 }

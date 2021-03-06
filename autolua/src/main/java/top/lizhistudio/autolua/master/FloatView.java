@@ -1,8 +1,7 @@
-package top.lizhistudio.autolua.ui;
-
-import android.graphics.Point;
+package top.lizhistudio.autolua.master;
 
 import top.lizhistudio.androidlua.annotation.LuaMethod;
+import top.lizhistudio.autolua.extend.Point;
 
 public interface FloatView {
     @LuaMethod
@@ -12,8 +11,10 @@ public interface FloatView {
     @LuaMethod
     void conceal();
     @LuaMethod
-    Point getPoint();
+    int getX();
     @LuaMethod
-    void setPoint(int x, int y);
+    int getY();
+    @LuaMethod
+    void setXY(int x, int y);
     long getID();
 }

@@ -1,4 +1,6 @@
 package top.lizhistudio.autolua.rpc;
 
-interface Callback {
+public interface Callback {
+    void onCompleted(Object result);
+    void onError(Throwable throwable);
 }

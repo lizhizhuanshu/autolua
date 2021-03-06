@@ -1,4 +1,4 @@
-package top.lizhistudio.autolua.rpc;
+package top.lizhistudio.autolua.rpc.message;
 
 import java.io.Serializable;
 

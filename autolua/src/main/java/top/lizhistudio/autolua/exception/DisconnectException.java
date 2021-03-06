@@ -1,4 +1,7 @@
 package top.lizhistudio.autolua.exception;
 
-class DisconnectException {
+public class DisconnectException extends RPCException{
+    public DisconnectException(Throwable throwable) {
+        super(throwable);
+    }
 }

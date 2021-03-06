@@ -1,19 +1,34 @@
 package top.lizhistudio.autolua.rpc;
 
-import top.lizhistudio.autolua.service.Protocol;
 
-public class SyncResponseListener implements ResponseListener{
-    private Response message;
-    @Override
-    public synchronized void onReceived(Response message) {
-        this.message = message;
-        this.notifyAll();
+import top.lizhistudio.autolua.exception.RemoteException;
+
+public class SyncCallback implements Callback{
+    private Object object;
+    private boolean hasThrowable = false;
+
+    public synchronized Object getResult() throws InterruptedException {
+        if (object == null)
+            wait();
+        if (hasThrowable)
+        {
+            if (object instanceof RemoteException)
+                throw (RemoteException)object;
+            else
+                throw new RuntimeException((Throwable)object);
+        }
+        return object;
     }
 
+    @Override
+    public synchronized void onCompleted(Object result) {
+        object = result;
+        notifyAll();
+    }
 
-    public synchronized Response getResponse() throws InterruptedException {
-        if (message == null)
-            wait();
-        return message;
+    @Override
+    public synchronized void onError(Throwable throwable) {
+        hasThrowable = true;
+        onCompleted(throwable);
     }
 }

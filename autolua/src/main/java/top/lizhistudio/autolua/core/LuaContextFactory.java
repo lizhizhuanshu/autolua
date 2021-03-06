@@ -1,4 +1,4 @@
-package top.lizhistudio.autolua;
+package top.lizhistudio.autolua.core;
 
 import top.lizhistudio.androidlua.LuaContext;
 

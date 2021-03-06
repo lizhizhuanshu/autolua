@@ -44,7 +44,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
         return -1;
     javaClassID = findGlobalClass(env,SCREEN_CLASS_NAME);
     jmethodID getDefaultMethodID = (*env)->GetStaticMethodID(env,javaClassID, "getDefault", "()" CLASS_ARG(SCREEN_CLASS_NAME));
-    jobject  obj = (*env)->CallObjectMethod(env,javaClassID,getDefaultMethodID);
+    jobject  obj = (*env)->CallStaticObjectMethod(env,javaClassID,getDefaultMethodID);
+    printf("screen global value %p\n",obj);
     ObjectID = GLOBAL(env,obj);
     FreeLocal(env,obj);
     SET_JAVA_METHOD(initialize, javaClassID, "V", "II");

@@ -1,6 +1,5 @@
 plugins {
     id 'com.android.library'
-    id 'com.google.protobuf'
 }
 
 android {
@@ -47,32 +46,6 @@ android {
         }
     }
 
-    sourceSets {
-        main {
-            jniLibs.srcDirs = ['libs']
-            proto{
-                srcDir 'src/main/proto'
-            }
-        }
-    }
-
-}
-
-protobuf {
-    protoc {
-        artifact = 'com.google.protobuf:protoc:3.10.0'
-    }
-
-    generateProtoTasks {
-        all().each { task ->
-            task.builtins {
-                java {
-                    option "lite"
-                }
-            }
-        }
-    }
-
 }
 
 
@@ -80,10 +53,8 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
-    implementation 'com.google.protobuf:protobuf-javalite:3.10.0'
     implementation 'commons-cli:commons-cli:1.4'
     implementation(project(":androidlua"))
-
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'

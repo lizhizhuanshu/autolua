@@ -1,4 +1,4 @@
-package top.lizhistudio.autolua.ui;
+package top.lizhistudio.autolua.master;
 
 import top.lizhistudio.androidlua.annotation.LuaMethod;
 

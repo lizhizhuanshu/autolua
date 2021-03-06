@@ -9,6 +9,13 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import top.lizhistudio.androidlua.JavaObjectWrapperFactoryImplement;
+import top.lizhistudio.androidlua.LuaContext;
+import top.lizhistudio.androidlua.LuaContextImplement;
+import top.lizhistudio.autolua.core.AutoLuaEngine;
+import top.lizhistudio.autolua.core.LuaContextFactory;
+import top.lizhistudio.autolua.core.Server;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -19,11 +26,6 @@ import static org.junit.Assert.assertEquals;
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
     private static final String TAG = "LuaContextTest";
-    LuaContext context;
-    public ExampleInstrumentedTest()
-    {
-        context = new LuaContextImplement(new JavaObjectWrapFactoryImplement());
-    }
     @Test
     public void useAppContext() {
         // Context of the app under test.
@@ -31,27 +33,19 @@ public class ExampleInstrumentedTest {
         assertEquals("top.lizhistudio.autolua.test", appContext.getPackageName());
     }
 
-    private static class TestClass
+    public static class MyLuaContextFactory implements LuaContextFactory
     {
-        public static void logError(String message)
-        {
-            Log.e(TAG,message);
-        }
-        public void log(String message)
-        {
-            Log.e(TAG,message);
-        }
-        public int test(int a,int b)
-        {
-            return a+b;
+        @Override
+        public LuaContext newInstance() {
+            JavaObjectWrapperFactoryImplement.Builder builder = new JavaObjectWrapperFactoryImplement.Builder();
+            builder.registerThrowable();
+            return new LuaContextImplement(builder.build());
         }
     }
 
-
     @Test
-    public void testLuaContext()
+    public void testAutoLuaContext() throws Throwable
     {
-
 
     }
 }

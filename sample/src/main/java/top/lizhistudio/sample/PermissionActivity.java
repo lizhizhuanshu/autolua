@@ -1,4 +1,4 @@
-package top.lizhistudio.auxiliary.view;
+package top.lizhistudio.sample;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -16,9 +16,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-
-
-import top.lizhistudio.auxiliary.R;
 
 
 public class PermissionActivity extends Activity {
@@ -39,7 +36,7 @@ public class PermissionActivity extends Activity {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
             intent.setData(Uri.parse("package:" + getPackageName()));
             Toast.makeText(this,
-                    "需要取得权限以使用悬浮窗",Toast.LENGTH_SHORT).show();
+                    "需要取得权限以使用悬浮窗", Toast.LENGTH_SHORT).show();
             startActivityForResult(intent,FLOAT_PERMISSION_REQUEST_CODE);
         }
         return result;
@@ -59,8 +56,6 @@ public class PermissionActivity extends Activity {
         }
         return permission == PackageManager.PERMISSION_GRANTED;
     }
-
-
 
 
     @Override
@@ -84,7 +79,6 @@ public class PermissionActivity extends Activity {
             return;
         isCompleted = true;
     }
-
 
 
 
@@ -161,7 +155,7 @@ public class PermissionActivity extends Activity {
             finish();
         }else
         {
-            Toast.makeText(this,"再次点击将退出软件",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"再次点击将退出软件", Toast.LENGTH_SHORT).show();
             lastBackPressedTime = time;
         }
     }

@@ -1,4 +1,4 @@
-package top.lizhistudio.host;
+package top.lizhistudio.sample;
 
 
 import android.content.BroadcastReceiver;
@@ -22,9 +22,7 @@ import android.widget.ImageView;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import top.lizhistudio.auxiliary.R;
-
-public class FloatViewImplement extends BroadcastReceiver implements FloatView {
+public class FloatControllerViewImplement extends BroadcastReceiver implements FloatControllerView {
     private Context context;
     private OnClickListener onClickListener = null;
     private DisplayMetrics displayMetrics;
@@ -36,7 +34,7 @@ public class FloatViewImplement extends BroadcastReceiver implements FloatView {
     private IntentFilter filter;
     private int nowImage;
 
-    public FloatViewImplement(Context context, int imageDiameter){
+    public FloatControllerViewImplement(Context context, int imageDiameter){
         showed = new AtomicBoolean(false);
         displayMetrics = new DisplayMetrics();
         nowImage = R.mipmap.start;
@@ -107,7 +105,7 @@ public class FloatViewImplement extends BroadcastReceiver implements FloatView {
     public void setState(int state){
         Message message = Message.obtain(mainHandler);
         message.what = MainHandler.EVENT_SET_IMAGE;
-        message.arg1 = state == STOP_STATE? R.mipmap.start:R.mipmap.stop;
+        message.arg1 = state == STOPPED_STATE ? R.mipmap.start:R.mipmap.stop;
         mainHandler.sendMessage(message);
     }
 
@@ -153,8 +151,8 @@ public class FloatViewImplement extends BroadcastReceiver implements FloatView {
         private static final int EVENT_SHOW = 0;
         private static final int EVENT_CONCEAL = 1;
         private static final int EVENT_SET_IMAGE = 2;
-        private WeakReference<FloatViewImplement> floatImageButton;
-        private MainHandler(WeakReference<FloatViewImplement> floatImageButton){
+        private WeakReference<FloatControllerViewImplement> floatImageButton;
+        private MainHandler(WeakReference<FloatControllerViewImplement> floatImageButton){
             super(Looper.getMainLooper());
             this.floatImageButton = floatImageButton;
         }
@@ -178,14 +176,14 @@ public class FloatViewImplement extends BroadcastReceiver implements FloatView {
         onClickListener = onClick;
     }
 
-    private final class ControlButtonListener implements View.OnClickListener,View.OnTouchListener
+    private final class ControlButtonListener implements View.OnClickListener, View.OnTouchListener
     {
         private int buttonX;
         private int buttonY;
         @Override
         public void onClick(View v) {
             if(onClickListener!= null)
-                onClickListener.onClick(FloatViewImplement.this,nowImage == R.mipmap.start?STOP_STATE:EXECUTE_STATE);
+                onClickListener.onClick(FloatControllerViewImplement.this,nowImage == R.mipmap.start? STOPPED_STATE : EXECUTEING_STATE);
         }
 
         private void touchButton(MotionEvent event)

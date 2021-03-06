@@ -1,8 +1,8 @@
-package top.lizhistudio.host;
+package top.lizhistudio.sample;
 
-public interface FloatView {
-    int STOP_STATE = 0;
-    int EXECUTE_STATE = 1;
+public interface FloatControllerView {
+    int STOPPED_STATE = 0;
+    int EXECUTEING_STATE = 1;
     void show();
     void reShow();
     void conceal();
@@ -10,6 +10,6 @@ public interface FloatView {
     void setState(int id);
     void setOnClickListener(OnClickListener onClickListener);
     interface OnClickListener {
-        void onClick(FloatView floatView, int state);
+        void onClick(FloatControllerView floatControllerView, int state);
     }
 }

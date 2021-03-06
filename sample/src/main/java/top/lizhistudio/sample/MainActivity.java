@@ -3,12 +3,13 @@ package top.lizhistudio.sample;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import top.lizhistudio.autolua.AutoLuaEngine;
-import top.lizhistudio.autolua.LuaInterpreter;
+import top.lizhistudio.autolua.core.AutoLuaEngine;
+import top.lizhistudio.autolua.rpc.Callback;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -18,26 +19,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        TextView textView = findViewById(R.id.test_button);
-        textView.setOnClickListener(new View.OnClickListener() {
+        Button button = findViewById(R.id.start);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AutoLuaEngine autoLuaEngine = MainApplication.getAutoLuaEngine();
-
-                autoLuaEngine.execute(AssetManager.read(MainActivity.this,"testLua.lua"), "test", new LuaInterpreter.Callback() {
-                    @Override
-                    public void onCompleted(Object[] result) {
-                        for (Object o:result)
-                        {
-                            Log.e("==========","result "+o);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
+                AutoLuaEngine.getInstance().start();
+            }
+        });
+        button = findViewById(R.id.stop);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AutoLuaEngine.getInstance().sendStop();
             }
         });
     }

@@ -13,4 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
-/addr2line.bat
+addr2line.bat

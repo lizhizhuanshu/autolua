@@ -12,8 +12,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/androidlua" />
+            <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/autolua" />
-            <option value="$PROJECT_DIR$/sample" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

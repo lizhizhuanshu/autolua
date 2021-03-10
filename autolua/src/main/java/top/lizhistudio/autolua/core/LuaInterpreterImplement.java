@@ -3,15 +3,15 @@ package top.lizhistudio.autolua.core;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.lizhistudio.androidlua.LuaContext;
+import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
-import top.lizhistudio.autolua.core.LuaContextFactory;
-import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.rpc.Callback;
 
 public class LuaInterpreterImplement implements LuaInterpreter {
     private LuaContext context;
     private final AtomicBoolean isRunning;
     private final LuaContextFactory luaContextFactory;
+    private final LuaHandler errorHandler;
 
     private volatile Thread nowThread;
 
@@ -26,19 +26,54 @@ public class LuaInterpreterImplement implements LuaInterpreter {
         }
     }
 
-    public LuaInterpreterImplement(LuaContextFactory luaContextFactory)
+    public LuaInterpreterImplement(LuaContextFactory luaContextFactory,LuaHandler errorHandler)
     {
         this.luaContextFactory = luaContextFactory;
         isRunning = new AtomicBoolean(false);
+        this.errorHandler = errorHandler;
     }
+
+    private void checkCallResult(LuaContext context, int r)
+    {
+        if (r != LuaContext.LUA_OK)
+        {
+            if (context.type(-1) == LuaContext.LUA_TSTRING)
+            {
+                String message = context.toString(-1);
+                context.pop(1);
+                throw new LuaInvokeError(message);
+            }else
+            {
+                context.pop(1);
+                throw new LuaInvokeError("unknown error");
+            }
+        }
+    }
+
+
+    private Object[] executeWrap(byte[] code,String chunkName)
+    {
+        nowThread = Thread.currentThread();
+        if (errorHandler != null)
+            return checkLuaContext().execute(code,chunkName,errorHandler);
+        return checkLuaContext().execute(code,chunkName,0);
+    }
+
+    private Object[] executeFileWrap(String path)
+    {
+        nowThread = Thread.currentThread();
+        if (errorHandler != null)
+            return checkLuaContext().executeFile(path,errorHandler);
+        return checkLuaContext().executeFile(path,0);
+    }
+
 
     @Override
     public Object[] execute(byte[] code, String chunkName) {
         if (isRunning.compareAndSet(false,true))
         {
             try{
-                nowThread = Thread.currentThread();
-                return checkLuaContext().execute(code,chunkName);
+                return executeWrap(code,chunkName);
             }finally {
                 isRunning.set(false);
             }
@@ -52,8 +87,7 @@ public class LuaInterpreterImplement implements LuaInterpreter {
         if (isRunning.compareAndSet(false,true))
         {
             try{
-                nowThread = Thread.currentThread();
-                return checkLuaContext().executeFile(path);
+                return executeFileWrap(path);
             }finally {
                 isRunning.set(false);
             }
@@ -69,8 +103,7 @@ public class LuaInterpreterImplement implements LuaInterpreter {
                 @Override
                 public void run() {
                     try{
-                        nowThread = Thread.currentThread();
-                        callback.onCompleted(checkLuaContext().execute(code,chunkName));
+                        callback.onCompleted(executeWrap(code,chunkName));
                     }catch (Throwable throwable)
                     {
                         callback.onError(throwable);
@@ -92,8 +125,7 @@ public class LuaInterpreterImplement implements LuaInterpreter {
                 @Override
                 public void run() {
                     try{
-                        nowThread = Thread.currentThread();
-                        callback.onCompleted(checkLuaContext().executeFile(path));
+                        callback.onCompleted(executeFileWrap(path));
                     }catch (Throwable throwable)
                     {
                         callback.onError(throwable);
@@ -105,6 +137,41 @@ public class LuaInterpreterImplement implements LuaInterpreter {
             }.start();
         }else
             callback.onError(new LuaInvokeError("lua is running"));
+    }
+
+    private String buildSetLoadPathScript(String projectPath)
+    {
+        return String.format("package.path = '%s/?.lua;%s/?/init.lua;' .. package.path \n",projectPath,projectPath);
+    }
+
+    private String buildSetLoadLibraryPathScript(String projectPath)
+    {
+        return String.format("package.cpath = '%s/lib?.so;%s/?.so;' .. package.cpath \n",projectPath,projectPath);
+    }
+
+
+    @Override
+    public boolean setLoadScriptPath(String path) {
+        String script = buildSetLoadPathScript(path);
+        try{
+            checkLuaContext().execute(script);
+            return true;
+        }catch (Throwable e)
+        {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean setLoadLibraryPath(String path) {
+        String script = buildSetLoadLibraryPathScript(path);
+        try{
+            checkLuaContext().execute(script);
+            return true;
+        }catch (Throwable e)
+        {
+            return false;
+        }
     }
 
 

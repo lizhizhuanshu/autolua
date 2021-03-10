@@ -1,4 +1,6 @@
-package top.lizhistudio.autolua;
+package top.lizhistudio.autolua.core;
 
-interface LuaInterpreterFactory {
+
+public interface LuaInterpreterFactory {
+    LuaInterpreter newInstance();
 }

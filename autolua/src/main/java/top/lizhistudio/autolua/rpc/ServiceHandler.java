@@ -3,21 +3,26 @@ package top.lizhistudio.autolua.rpc;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import top.lizhistudio.autolua.annotation.RPCMethod;
-import top.lizhistudio.autolua.exception.RPCException;
 import top.lizhistudio.autolua.exception.RemoteException;
 import top.lizhistudio.autolua.rpc.message.Request;
 import top.lizhistudio.autolua.rpc.message.Response;
 import top.lizhistudio.autolua.rpc.transport.Transport;
 
 public class ServiceHandler {
-    private final ConcurrentHashMap<String,RPCService> rpcServices;
+    private final RPCServiceCache rpcServices;
     private final Transport transport;
+
     public ServiceHandler(Transport transport)
     {
-        rpcServices = new ConcurrentHashMap<>();
+        this.transport = transport;
+        this.rpcServices = new RPCServiceCache();
+    }
+
+    public ServiceHandler(Transport transport,RPCServiceCache rpcServices)
+    {
+        this.rpcServices = rpcServices;
         this.transport = transport;
     }
 
@@ -36,27 +41,26 @@ public class ServiceHandler {
         rpcServices.remove(name);
     }
 
-    private HashMap<String,Class<?>> getServices()
+    private String[] allServiceName()
     {
-        HashMap<String,Class<?>> services = new HashMap<>();
-        for (String key:rpcServices.keySet())
-        {
-            services.put(key,rpcServices.get(key).getInterface());
-        }
-        return services;
+        return rpcServices.allServiceName();
     }
 
 
     public void onReceive(Request request)
     {
         Object result;
-        try{
-            if (request.serviceName == null)
+        try {
+            if (request.serviceName == null) {
+                result = allServiceName();
+            } else if (request.methodName == null)
             {
-                result = getServices();
-            }else
+                result = rpcServices.get(request.serviceName)!=null;
+            }
+            else
             {
                 RPCService service = rpcServices.get(request.serviceName);
+                assert service!=null;
                 Method method = service.getMethod(request.methodName);
                 if (method.getAnnotation(RPCMethod.class).async())
                 {

@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import top.lizhistudio.autolua.rpc.ClientHandler;
 import top.lizhistudio.autolua.rpc.RPCService;
+import top.lizhistudio.autolua.rpc.RPCServiceCache;
 import top.lizhistudio.autolua.rpc.ServiceHandler;
 import top.lizhistudio.autolua.rpc.message.Request;
 import top.lizhistudio.autolua.rpc.message.Response;
@@ -45,16 +46,14 @@ public class AutoLuaEngine {
     private final Handler receiveHandler;
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
     private final ExecutorService executorService;
-    private final HashMap<String, RPCService> rpcServiceHashMap;
-
+    private final RPCServiceCache rpcServiceCache;
     private AutoLuaEngine()
     {
-
         receiveThread = new HandlerThread("receive message thread");
         receiveThread.start();
         receiveHandler = new Handler(receiveThread.getLooper());
         executorService = Executors.newCachedThreadPool();
-        rpcServiceHashMap = new HashMap<>();
+        rpcServiceCache = new RPCServiceCache();
     }
 
 
@@ -88,11 +87,14 @@ public class AutoLuaEngine {
         {
             throw new RuntimeException("register aInterface need a interface");
         }
-        synchronized (rpcServiceHashMap)
-        {
-            return rpcServiceHashMap.put(name,new RPCService(aInterface,service));
-        }
+        return rpcServiceCache.put(name,new RPCService(aInterface,service));
     }
+
+    public RPCService unRegister(String name)
+    {
+        return rpcServiceCache.remove(name);
+    }
+
 
 
     private void update(STATE newState)
@@ -185,7 +187,6 @@ public class AutoLuaEngine {
         outputStream.write(command.getBytes());
         outputStream.flush();
         String message = getStartErrorMessage(process);
-        Log.e(TAG,"start completed");
         if (message != null)
             throw new RuntimeException(message);
     }
@@ -221,11 +222,7 @@ public class AutoLuaEngine {
         }
         transport = new ClientTransport(tSocket);
         clientHandler = new ClientHandler(transport);
-        serviceHandler = new ServiceHandler(transport);
-        for (Map.Entry<String,RPCService> entry:rpcServiceHashMap.entrySet())
-        {
-            serviceHandler.register(entry.getKey(),entry.getValue());
-        }
+        serviceHandler = new ServiceHandler(transport,rpcServiceCache);
     }
 
     private void serve()
@@ -362,8 +359,12 @@ public class AutoLuaEngine {
     public LuaInterpreter getInterrupt()
     {
         ClientHandler clientHandler = this.clientHandler;
-        if (clientHandler != null)
-            return (LuaInterpreter)clientHandler.getService(Server.AUTO_LUA_SERVICE_NAME,LuaInterpreter.class);
+        try{
+            if (clientHandler != null)
+                return clientHandler.getService(Server.AUTO_LUA_SERVICE_NAME,LuaInterpreter.class);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
+        }
         return null;
     }
 
@@ -436,7 +437,7 @@ public class AutoLuaEngine {
         private String localAddress = null;
         private int port = -1;
         private String packagePath = null;
-        private Class<?> luaContextFactory = null;
+        private Class<?> luaInterpreterFactory = null;
 
         private StartConfig(){}
 
@@ -514,9 +515,9 @@ public class AutoLuaEngine {
             return this;
         }
 
-        public StartConfig setLuaContextFactory(Class<? extends LuaContextFactory> aClass)
+        public StartConfig setLuaInterpreterFactory(Class<? extends LuaInterpreterFactory> aClass)
         {
-            this.luaContextFactory = aClass;
+            this.luaInterpreterFactory = aClass;
             return this;
         }
 
@@ -615,9 +616,9 @@ public class AutoLuaEngine {
                 appendArg(command,"-l",localAddress);
             }
             appendArg(command,"-v",password);
-            if (luaContextFactory == null)
+            if (luaInterpreterFactory == null)
                 throw new RuntimeException("need set LuaContextFactory");
-            appendArg(command,"-f","'"+luaContextFactory.getName()+"'");
+            appendArg(command,"-f","'"+ luaInterpreterFactory.getName()+"'");
             command.append('\n');
             return command.toString();
         }

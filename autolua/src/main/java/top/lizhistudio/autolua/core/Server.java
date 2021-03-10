@@ -65,13 +65,13 @@ public class Server {
         }
     }
 
-    private static LuaContextFactory createFactory(String className)
+    private static LuaInterpreterFactory createFactory(String className)
             throws ClassNotFoundException,
             IllegalAccessException,
             InstantiationException
     {
         Class<?> aClass = Class.forName(className);
-        return (LuaContextFactory) aClass.newInstance();
+        return (LuaInterpreterFactory) aClass.newInstance();
     }
 
 
@@ -127,8 +127,8 @@ public class Server {
                         new PasswordProcurator( commandLine.getOptionValue('v')));
                 ClientHandler clientHandler = new ClientHandler(transport);
                 ServiceHandler serviceHandler = new ServiceHandler(transport);
-                LuaContextFactory  luaContextFactory = createFactory(commandLine.getOptionValue('f'));
-                LuaInterpreter luaInterpreter = new LuaInterpreterImplement(luaContextFactory);
+                LuaInterpreterFactory  luaInterpreterFactory = createFactory(commandLine.getOptionValue('f'));
+                LuaInterpreter luaInterpreter = luaInterpreterFactory.newInstance();
                 serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
                 self = new Server(transport,clientHandler,serviceHandler);
                 System.out.println(1);

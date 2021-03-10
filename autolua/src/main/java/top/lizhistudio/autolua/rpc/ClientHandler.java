@@ -45,22 +45,30 @@ public class ClientHandler {
     }
 
 
-    public HashMap<String,Class<?>> getServices() throws InterruptedException
+    public String[] allServiceName() throws InterruptedException
     {
         Request request = new Request();
         do{
             request.callID = id.getAndAdd(1);
         }while (request.callID == 0);
         request.serviceName = null;
-        return (HashMap<String, Class<?>>) sendAndGetResult(request);
+        return (String[])sendAndGetResult(request);
     }
 
-
-    public Object getService(String name,Class<?> serviceInterface)
+    private boolean hasService(String name) throws InterruptedException
     {
-        return Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader()
+        Request request = new Request();
+        request.serviceName = name;
+        request.callID = id.getAndAdd(1);
+        request.methodName = null;
+        return (boolean)sendAndGetResult(request);
+    }
+
+    public <T> T getService(String name,Class<T> serviceInterface) throws InterruptedException
+    {
+        return hasService (name)?(T)(Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader()
                 ,new Class[]{serviceInterface}
-                ,new ProxyHandler(name));
+                ,new ProxyHandler(name))):null;
     }
 
     private class ProxyHandler implements InvocationHandler

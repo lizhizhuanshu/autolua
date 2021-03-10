@@ -5,14 +5,14 @@
   * This source code is licensed under the MIT.
   * For the full copyright and license information,please view the LICENSE file in the root directory of this source tree.
   */
-package top.lizhistudio.autoluaapp.provider;
+package top.lizhistudio.app.provider;
 
 import android.content.res.Resources;
 import android.text.TextUtils;
 
 import androidx.collection.LruCache;
 
-import top.lizhistudio.autoluaapp.App;
+import top.lizhistudio.app.App;
 
 /**
  * Created by XiongFangyu on 2018/8/9.

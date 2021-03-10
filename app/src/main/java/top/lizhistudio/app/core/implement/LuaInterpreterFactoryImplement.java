@@ -1,10 +1,10 @@
-package top.lizhistudio.autoluaapp.core.implement;
+package top.lizhistudio.app.core.implement;
 
 import top.lizhistudio.androidlua.DebugInfo;
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInterruptError;
-import top.lizhistudio.autoluaapp.core.DebugListener;
+import top.lizhistudio.app.core.DebugListener;
 import top.lizhistudio.autolua.core.LuaContextFactory;
 import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.core.LuaInterpreterFactory;

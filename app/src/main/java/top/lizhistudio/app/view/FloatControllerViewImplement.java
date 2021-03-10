@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.view;
+package top.lizhistudio.app.view;
 
 
 import android.content.BroadcastReceiver;

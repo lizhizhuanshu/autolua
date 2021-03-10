@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.activity;
+package top.lizhistudio.app.activity;
 
 import android.content.Context;
 import android.content.Intent;

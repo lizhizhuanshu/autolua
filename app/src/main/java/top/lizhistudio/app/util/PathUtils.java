@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.util;
+package top.lizhistudio.app.util;
 
 import android.content.ContentUris;
 import android.content.Context;

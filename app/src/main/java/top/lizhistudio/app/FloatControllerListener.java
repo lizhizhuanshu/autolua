@@ -1,12 +1,10 @@
-package top.lizhistudio.autoluaapp;
+package top.lizhistudio.app;
 
 import android.util.Log;
 import android.widget.Toast;
 
-import top.lizhistudio.autoluaapp.core.ProjectManager;
-import top.lizhistudio.autoluaapp.core.implement.ProjectManagerImplement;
-import top.lizhistudio.autoluaapp.util.AssetManager;
-import top.lizhistudio.autoluaapp.view.FloatControllerView;
+import top.lizhistudio.app.core.implement.ProjectManagerImplement;
+import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.rpc.Callback;

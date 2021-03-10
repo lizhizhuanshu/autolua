@@ -1,16 +1,16 @@
-package top.lizhistudio.autoluaapp.core.implement;
+package top.lizhistudio.app.core.implement;
 
 import org.apache.thrift.TException;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import top.lizhistudio.autoluaapp.core.DebugListener;
-import top.lizhistudio.autoluaapp.core.ProjectManager;
-import top.lizhistudio.autoluaapp.thrift.DebuggerService;
-import top.lizhistudio.autoluaapp.thrift.MESSAGE_TYPE;
-import top.lizhistudio.autoluaapp.thrift.Message;
-import top.lizhistudio.autoluaapp.thrift.ProjectInfo;
+import top.lizhistudio.app.core.DebugListener;
+import top.lizhistudio.app.core.ProjectManager;
+import top.lizhistudio.app.thrift.DebuggerService;
+import top.lizhistudio.app.thrift.MESSAGE_TYPE;
+import top.lizhistudio.app.thrift.Message;
+import top.lizhistudio.app.thrift.ProjectInfo;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.rpc.Callback;

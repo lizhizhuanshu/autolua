@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.service;
+package top.lizhistudio.app.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;

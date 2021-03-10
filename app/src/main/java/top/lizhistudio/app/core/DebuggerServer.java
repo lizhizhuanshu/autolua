@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.core;
+package top.lizhistudio.app.core;
 
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -9,8 +9,8 @@ import org.apache.thrift.transport.TTransportException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import top.lizhistudio.autoluaapp.core.implement.DebugServiceImplement;
-import top.lizhistudio.autoluaapp.thrift.DebuggerService;
+import top.lizhistudio.app.core.implement.DebugServiceImplement;
+import top.lizhistudio.app.thrift.DebuggerService;
 
 public class DebuggerServer {
     private final AtomicBoolean isRunning = new AtomicBoolean(false);

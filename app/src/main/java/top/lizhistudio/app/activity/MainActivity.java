@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.activity;
+package top.lizhistudio.app.activity;
 
 
 import android.app.Activity;
@@ -10,12 +10,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import top.lizhistudio.autoluaapp.core.implement.ProjectManagerImplement;
+import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
-import top.lizhistudio.autoluaapp.App;
+import top.lizhistudio.app.App;
 import top.lizhistudio.app.R;
-import top.lizhistudio.autoluaapp.core.ProjectManager;
+import top.lizhistudio.app.core.ProjectManager;
 
+//TODO 设置端口，控制调试器开关的界面，最好显示当前的ip地址
+//TODO debuggerServer 增加一个监听器方法
+
+//TODO 实现VSCode 调试器插件
+
+//TODO 将本地地址转换成相对地址
 
 public class MainActivity extends Activity {
     private long lastBackPressedTime = 0;

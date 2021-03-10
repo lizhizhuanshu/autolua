@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.core.implement;
+package top.lizhistudio.app.core.implement;
 
 import android.content.Context;
 
@@ -12,7 +12,7 @@ import java.util.Set;
 
 
 import top.lizhistudio.autolua.debugger.proto.Date;
-import top.lizhistudio.autoluaapp.core.ProjectManager;
+import top.lizhistudio.app.core.ProjectManager;
 
 public class ProjectManagerImplement implements ProjectManager {
     private String rootPath = null;

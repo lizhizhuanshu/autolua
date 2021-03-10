@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.view;
+package top.lizhistudio.app.view;
 
 public interface FloatControllerView {
     int STOPPED_STATE = 0;

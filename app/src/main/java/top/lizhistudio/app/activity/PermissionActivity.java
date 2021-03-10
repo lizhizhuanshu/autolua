@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.activity;
+package top.lizhistudio.app.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;

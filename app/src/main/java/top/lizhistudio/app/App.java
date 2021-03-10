@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp;
+package top.lizhistudio.app;
 
 import android.app.Application;
 import android.content.Intent;
@@ -14,13 +14,13 @@ import com.immomo.mls.fun.lt.SIApplication;
 
 import org.luaj.vm2.Globals;
 
-import top.lizhistudio.autoluaapp.core.implement.ProjectManagerImplement;
-import top.lizhistudio.autoluaapp.service.MainService;
+import top.lizhistudio.app.core.implement.ProjectManagerImplement;
+import top.lizhistudio.app.service.MainService;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
-import top.lizhistudio.autoluaapp.core.implement.LuaInterpreterFactoryImplement;
-import top.lizhistudio.autoluaapp.provider.GlideImageProvider;
-import top.lizhistudio.autoluaapp.view.FloatControllerView;
-import top.lizhistudio.autoluaapp.view.FloatControllerViewImplement;
+import top.lizhistudio.app.core.implement.LuaInterpreterFactoryImplement;
+import top.lizhistudio.app.provider.GlideImageProvider;
+import top.lizhistudio.app.view.FloatControllerView;
+import top.lizhistudio.app.view.FloatControllerViewImplement;
 
 
 public class App extends Application {

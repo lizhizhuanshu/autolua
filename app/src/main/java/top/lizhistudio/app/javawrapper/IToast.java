@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.javawrapper;
+package top.lizhistudio.app.javawrapper;
 
 import android.content.Context;
 import android.widget.Toast;

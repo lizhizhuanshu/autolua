@@ -1,4 +1,4 @@
-package top.lizhistudio.autoluaapp.core;
+package top.lizhistudio.app.core;
 
 import top.lizhistudio.autolua.annotation.RPCMethod;
 

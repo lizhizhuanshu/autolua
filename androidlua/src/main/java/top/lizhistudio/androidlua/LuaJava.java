@@ -27,12 +27,19 @@ public class LuaJava {
     static native void pushNil(long nativeLua);
 
     static native void push(long nativeLua, JavaObjectWrapper objectWrapper);
+    static native void push(long nativeLua,LuaHandler luaHandler);
     static native void pushJavaObjectMethod(long nativeLua);
 
-    static native void setGlobal(long nativeLua,String key);
 
-    static native int execute(long nativeLua, byte[] code , String chunkName);
-    static native int executeFile(long nativeLua, String path);
+    static native int loadBuffer(long nativeLua,byte[] code,String chunkName,int codeType);
+    static native int loadFile(long nativeLua, String fileName,int codeType);
+    static native int reference(long nativeLua,int tableIndex);
+    static native void unReference(long nativeLua,int tableIndex,int reference);
+
+    static native int pCall(long nativeLua, int argNumber, int resultNumber, int errorFunctionIndex);
+
+
+    static native void setGlobal(long nativeLua,String key);
 
     static native int type(long nativeLua,int index);
     static native boolean isInteger(long nativeLua,int index);
@@ -40,4 +47,10 @@ public class LuaJava {
     static native JavaObjectWrapper toJavaObject(long nativeLua, int index);
     static native int getTop(long nativeLua);
     static native void setTop(long nativeLua,int index);
+
+    static native void pop(long nativeLua, int n);
+
+    static native boolean getStack(long nativeLua,int level,DebugInfo debugInfo);
+    static native boolean getInfo(long nativeLua,String what,DebugInfo debugInfo);
+
 }

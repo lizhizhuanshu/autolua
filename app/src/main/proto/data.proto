@@ -1,0 +1,49 @@
+syntax = "proto3";
+option java_package = "top.lizhistudio.autolua.debugger.proto";
+option java_outer_classname = "Date";
+
+message ProjectInfoData
+{
+  string name=1;
+  string feature=2;
+  sint64 version = 3;
+}
+
+message ProjectInfoCache
+{
+  repeated ProjectInfoData data= 1;
+}
+
+enum METHOD{
+  UNKNOWN = 0;
+  GET_INFO=1;
+  CREATE_PROJECT=2;
+  CREATE_DIRECTORY=3;
+  UPDATE_VERSION=4;
+  UPDATE_FILE=5;
+  DELETE_FILE=6;
+  DELETE_DIRECTORY=7;
+  DELETE_PROJECT=8;
+
+  EXECUTE_FILE = 9;
+  INTERRUPT=10;
+
+  LOG = 11;
+
+  RETURN =12;
+}
+
+
+
+
+message Message
+{
+  METHOD method=1;
+  bool result=2;
+  string name=3;
+  string feature=4;
+  sint64 version = 5;
+  string path = 6;
+  bytes data=7;
+  string message = 8;
+}

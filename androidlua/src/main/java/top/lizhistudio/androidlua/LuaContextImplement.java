@@ -4,18 +4,21 @@ import android.util.LongSparseArray;
 
 import androidx.annotation.NonNull;
 
+import top.lizhistudio.androidlua.annotation.NativeLuaUseMethod;
+import top.lizhistudio.androidlua.exception.LuaError;
+import top.lizhistudio.androidlua.exception.LuaInvokeError;
 import top.lizhistudio.androidlua.exception.LuaTypeError;
 
-public class LuaContextImplement implements LuaContext {
+public class LuaContextImplement extends BaseLuaContext {
     private static final String TAG = "LuaContext";
     private long nativeLua;
-    private final LongSparseArray<JavaObjectWrapper> javaObjectWrappers;
+    private final LongSparseArray<Object> objectCache;
     private final JavaObjectWrapperFactory javaObjectWrapperFactory;
 
     public LuaContextImplement(@NonNull JavaObjectWrapperFactory javaObjectWrapperFactory)
     {
         nativeLua = LuaJava.newLuaState(this);
-        javaObjectWrappers = new LongSparseArray<>();
+        objectCache = new LongSparseArray<>();
         this.javaObjectWrapperFactory = javaObjectWrapperFactory;
     }
 
@@ -128,6 +131,15 @@ public class LuaContextImplement implements LuaContext {
         return result;
     }
 
+    @Override
+    public Object[] toJavaObjects(int originIndex, int sum) {
+        Object[] result = new Object[sum];
+        for (int i = 0; i < sum; i++) {
+            result[i] = toJavaObject(originIndex+i);
+        }
+        return result;
+    }
+
     private void pushObject(Class<?> aClass,Object o)
     {
         if (o == null)
@@ -193,6 +205,11 @@ public class LuaContextImplement implements LuaContext {
     }
 
     @Override
+    public void push(LuaHandler luaHandler) {
+        LuaJava.push(nativeLua,luaHandler);
+    }
+
+    @Override
     public void push(long v) {
         LuaJava.push(nativeLua,v);
     }
@@ -228,6 +245,31 @@ public class LuaContextImplement implements LuaContext {
     }
 
     @Override
+    public int loadBuffer(byte[] code, String chunkName, CODE_TYPE mode) {
+        return LuaJava.loadBuffer(nativeLua,code,chunkName,mode.getCode());
+    }
+
+    @Override
+    public int loadFile(String filePath, CODE_TYPE mode) {
+        return LuaJava.loadFile(nativeLua,filePath,mode.getCode());
+    }
+
+    @Override
+    public int reference(int tableIndex) {
+        return LuaJava.reference(nativeLua,tableIndex);
+    }
+
+    @Override
+    public void unReference(int tableIndex, int reference) {
+        LuaJava.unReference(nativeLua,tableIndex,reference);
+    }
+
+    @Override
+    public int pCall(int argSum, int resultSum, int errorHandlerIndex) {
+        return LuaJava.pCall(nativeLua,argSum,resultSum,errorHandlerIndex);
+    }
+
+    @Override
     public void setGlobal(String key) {
         LuaJava.setGlobal(nativeLua,key);
     }
@@ -243,31 +285,6 @@ public class LuaContextImplement implements LuaContext {
     }
 
 
-    private Object[] getResult(int resultCount)
-    {
-        try{
-            Object[] result = new Object[resultCount];
-            for (int i = resultCount; i > 0; i--) {
-                result[i-1] = toJavaObject(i);
-            }
-            return result;
-        }finally {
-            LuaJava.setTop(nativeLua,getTop()- resultCount);
-        }
-    }
-
-    @Override
-    public Object[] execute(byte[] code, String chunkName) {
-        int resultCount = LuaJava.execute(nativeLua,code,chunkName);
-        return getResult(resultCount);
-    }
-
-    @Override
-    public Object[] executeFile(String path) {
-        int resultCount = LuaJava.executeFile(nativeLua,path);
-        return getResult(resultCount);
-    }
-
     @Override
     public synchronized void destroy() {
         if (nativeLua>0)
@@ -278,23 +295,13 @@ public class LuaContextImplement implements LuaContext {
     }
 
     @Override
+    public void pop(int n) {
+        LuaJava.pop(nativeLua,n);
+    }
+
+    @Override
     protected void finalize() throws Throwable {
         destroy();
-    }
-
-    @Override
-    public void pushWrapper(long id, JavaObjectWrapper objectWrapper) {
-        javaObjectWrappers.put(id,objectWrapper);
-    }
-
-    @Override
-    public JavaObjectWrapper getWrapper(long id) {
-        return javaObjectWrappers.get(id);
-    }
-
-    @Override
-    public void removeWrapper(long id) {
-        javaObjectWrappers.remove(id);
     }
 
     @Override
@@ -306,4 +313,36 @@ public class LuaContextImplement implements LuaContext {
     public void setTop(int index) {
         LuaJava.setTop(nativeLua,index);
     }
+
+    @Override
+    public boolean isJavaObjectWrapper(int index) {
+        return LuaJava.isJavaObjectWrapper(nativeLua,index);
+    }
+
+    @Override
+    public boolean getStack(int level, DebugInfo debugInfo) {
+        return LuaJava.getStack(nativeLua,level,debugInfo);
+    }
+
+    @Override
+    public boolean getInfo(String what, DebugInfo debugInfo) {
+        return LuaJava.getInfo(nativeLua,what,debugInfo);
+    }
+
+
+    @NativeLuaUseMethod
+    public void cacheJavaObject(long id, Object o) {
+        objectCache.put(id,o);
+    }
+
+    @NativeLuaUseMethod
+    public Object getJavaObject(long id) {
+        return objectCache.get(id);
+    }
+
+    @NativeLuaUseMethod
+    public void removeJavaObject(long id) {
+        objectCache.remove(id);
+    }
+
 }

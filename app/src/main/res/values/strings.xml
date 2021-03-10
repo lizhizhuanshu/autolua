@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">autolua</string>
+    <string name="name">AutoLua</string>
+    <string name="startService">启动服务</string>
+    <string name="stopService">停止服务</string>
+    <string name="add">+</string>
+    <string name="setProjectName">设置项目名称</string>
+    <string name="start">启动</string>
+    <string name="delete">删除</string>
+</resources>

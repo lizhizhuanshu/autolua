@@ -1,5 +1,7 @@
 package top.lizhistudio.autolua.rpc;
 
+import android.util.Log;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RPCServiceCache {

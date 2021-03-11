@@ -73,7 +73,7 @@ public abstract class BaseLuaContext implements LuaContext {
             push(errorHandler);
             int result = loadBuffer(code,chunkName,CODE_TYPE.TEXT_BINARY);
             checkLoadResult(result);
-            return callAndGetResult(oldTop,oldTop+1);
+            return callAndGetResult(oldTop+1,oldTop+1);
         }finally {
             setTop(oldTop);
         }
@@ -85,7 +85,7 @@ public abstract class BaseLuaContext implements LuaContext {
             push(errorHandler);
             int result = loadFile(path,CODE_TYPE.TEXT_BINARY);
             checkLoadResult(result);
-            return callAndGetResult(oldTop,oldTop+1);
+            return callAndGetResult(oldTop+1,oldTop+1);
         }finally {
             setTop(oldTop);
         }

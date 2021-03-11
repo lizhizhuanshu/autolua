@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_project">
+
+    <fragment
+        android:id="@+id/navigation_project"
+        android:name="top.lizhistudio.app.activity.ui.project.ProjectsFragment"
+        android:label="@string/title_project"
+        tools:layout="@layout/fragment_project" />
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="top.lizhistudio.app.activity.ui.settings.SettingsFragment"
+        android:label="@string/title_settings"
+        tools:layout="@layout/fragment_settings" />
+</navigation>

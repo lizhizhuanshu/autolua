@@ -18,14 +18,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Autolua">
+        <activity
+            android:name=".activity.MainActivity"
+            android:label="@string/title_activity_main" />
+
         <service
             android:name=".service.MainService"
             android:enabled="true"
             android:exported="true" />
 
-        <activity
-            android:name=".activity.MainActivity"
-            android:label="@string/app_name" />
         <activity
             android:name=".activity.PrepareActivity"
             android:configChanges="orientation|screenSize"

@@ -49,7 +49,7 @@ public class LuaContextImplement extends BaseLuaContext {
 
     private void throwTypeError(int index)
     {
-        throw new LuaTypeError("lua "+nativeLua+" index "+index+"can't to Java Object");
+        throw new LuaTypeError("lua "+nativeLua+" index "+index+" can't to Java Object");
     }
 
     @Override

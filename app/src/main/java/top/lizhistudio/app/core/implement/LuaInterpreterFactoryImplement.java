@@ -56,7 +56,7 @@ public class LuaInterpreterFactoryImplement implements LuaInterpreterFactory {
             if (debugListener != null)
             {
                 DebugInfo debugInfo = new DebugInfo();
-                luaContext.getStack(2,debugInfo);
+                luaContext.getStack(1,debugInfo);
                 luaContext.getInfo("Sl",debugInfo);
                 String path = debugInfo.getSource();
                 int currentLine = debugInfo.getCurrentLine();

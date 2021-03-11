@@ -5,14 +5,15 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
 
+import java.util.Observable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.lizhistudio.app.core.implement.DebugServiceImplement;
 import top.lizhistudio.app.thrift.DebuggerService;
 
-public class DebuggerServer {
+public class DebuggerServer extends Observable {
+
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private THsHaServer server;
 
@@ -20,10 +21,39 @@ public class DebuggerServer {
     {
     }
 
+
+
     public boolean isServing()
     {
         return isRunning.get() && server != null && server.isServing();
     }
+
+
+    private void update(boolean isRun)
+    {
+        synchronized (isRunning)
+        {
+            isRunning.set(isRun);
+            setChanged();
+            notifyObservers(isRun);
+        }
+    }
+
+    private boolean compareAndSet(boolean exception,boolean set)
+    {
+        synchronized (isRunning)
+        {
+            if (isRunning.compareAndSet(exception,set))
+            {
+
+                setChanged();
+                notifyObservers(set);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void startService(int port)
     {
@@ -42,12 +72,12 @@ public class DebuggerServer {
                     server.serve();
                     serverTransport.close();
                     server = null;
-                }catch (TTransportException e)
+                }catch (Throwable e)
                 {
                     e.printStackTrace();
                 }
                 finally {
-                    isRunning.set(false);
+                    update(false);
                 }
             }
         }.start();
@@ -56,7 +86,7 @@ public class DebuggerServer {
 
     public void start(int port)
     {
-        if (isRunning.compareAndSet(false,true))
+        if (compareAndSet(false,true))
         {
             startService(port);
         }
@@ -81,4 +111,6 @@ public class DebuggerServer {
     {
         return Stub.server;
     }
+
+
 }

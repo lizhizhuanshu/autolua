@@ -85,7 +85,7 @@ public class LuaContextFactoryImplement implements LuaContextFactory {
             if (listener == null)
                 return 0;
             String message = getMessage(luaContext);
-            luaContext.getStack(2,debugInfo);
+            luaContext.getStack(1,debugInfo);
             luaContext.getInfo("Sl",debugInfo);
             String path = debugInfo.getSource();
             int currentLine = debugInfo.getCurrentLine();

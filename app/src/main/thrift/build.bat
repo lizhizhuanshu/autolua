@@ -1,1 +1,1 @@
-thrift -out %cd%\..\java  -gen java DebugService.thrift
+thrift -out %cd%\..\java  --gen java DebugService.thrift

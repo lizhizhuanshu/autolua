@@ -1,11 +1,13 @@
 package top.lizhistudio.app.core.implement;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -114,6 +116,7 @@ public class ProjectManagerImplement implements ProjectManager {
                 FileOutputStream outputStream = new FileOutputStream(file);
                 cache.writeDelimitedTo(outputStream);
                 outputStream.flush();
+                outputStream.close();
             }catch (IOException e)
             {
                 throw new RuntimeException(e);
@@ -144,9 +147,10 @@ public class ProjectManagerImplement implements ProjectManager {
         if (info == null)
             return false;
         File file = new File(projectPath+"/"+projectName,path);
+
         if (file.exists())
             return false;
-        return file.mkdir();
+        return file.mkdirs();
     }
 
     @Override
@@ -167,11 +171,19 @@ public class ProjectManagerImplement implements ProjectManager {
         if (file.isDirectory())
             return false;
         try{
+            if (!file.exists())
+            {
+                if (!file.createNewFile())
+                    return false;
+            }
             FileOutputStream outputStream = new FileOutputStream(file);
             outputStream.write(data);
+            outputStream.flush();
+            outputStream.close();
             return true;
         }catch (IOException e)
         {
+            e.printStackTrace();
             return false;
         }
     }

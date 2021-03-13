@@ -8,7 +8,8 @@
 
 ## 步骤
 以下提到的手机代表是 android5.0以上版本root的手机  
-1. 你的手机需要安装**AutoLua**的客户端，[下载地址](https://www.lizhistudio.top/android/autolua.apk)
+1. 你的手机需要安装**AutoLua**的客户端[github下载](app/release/autolua.apk)
+[国内下载](https://www.lizhistudio.top/android/autolua.apk)  
 2. 确保你的手机与电脑连接在同一局域网下  
 ![手机设置](setting.png)
 3. 你的电脑需要安装VSCode软件

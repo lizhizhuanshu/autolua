@@ -82,6 +82,7 @@ public interface LuaContext {
     boolean isJavaObject(int index);
     boolean getStack(int level,DebugInfo debugInfo);
     boolean getInfo(String what,DebugInfo debugInfo);
+    int getGlobal(String key);
 
     Object[] execute(byte[] code,String chunkName,int errorHandlerIndex);
     Object[] executeFile(String path,int errorHandlerIndex);
@@ -94,6 +95,8 @@ public interface LuaContext {
     void setGlobal(String key,Class<?> aClass, Object javaObject);
     void setGlobal(String key,LuaHandler luaHandler);
     void setGlobal(String key,Class<?> aClass);
+
+    int require(String modeName);
 
     String coerceToString(int index);
 }

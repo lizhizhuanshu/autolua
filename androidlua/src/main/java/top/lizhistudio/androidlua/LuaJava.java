@@ -48,6 +48,7 @@ public class LuaJava {
     static native JavaObjectWrapper toJavaObject(long nativeLua, int index);
     static native int getTop(long nativeLua);
     static native void setTop(long nativeLua,int index);
+    static native int getGlobal(long nativeLua,String key);
 
     static native void pop(long nativeLua, int n);
 

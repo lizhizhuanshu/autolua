@@ -1,9 +1,7 @@
-local screen = require "screen"
-local viewer = require "viewer"
-screen:initialize(0,0)
-print(screen:getWidthHeight())
+Screen:initialize(0,0)
+print(Screen:getWidthHeight())
 print(Controller)
-print(viewer.getColor(screen,150,150))
+print(Viewer.getColor(Screen,150,150))
 print(LayoutParams)
 print(LayoutParams.TYPE_TOAST)
 local layout = LayoutParams()

@@ -333,6 +333,11 @@ public class LuaContextImplement extends BaseLuaContext {
         return LuaJava.getInfo(nativeLua,what,debugInfo);
     }
 
+    @Override
+    public int getGlobal(String key) {
+        return LuaJava.getGlobal(nativeLua,key);
+    }
+
 
     @NativeLuaUseMethod
     public void cacheJavaObject(long id, Object o) {

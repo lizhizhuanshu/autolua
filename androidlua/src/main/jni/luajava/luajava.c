@@ -692,3 +692,15 @@ Java_top_lizhistudio_androidlua_LuaJava_toPointer(JNIEnv *env, jclass clazz, jlo
                                                   jint index) {
     return (jlong)lua_topointer(toLuaState(native_lua),index);
 }
+
+JNIEXPORT jint JNICALL
+Java_top_lizhistudio_androidlua_LuaJava_getGlobal(JNIEnv *env, jclass clazz, jlong native_lua,
+                                                  jstring key) {
+    jboolean isCopy = 0;
+    const char* cKey = (*env)->GetStringUTFChars(env,key,&isCopy);
+    lua_State *L = toLuaState(native_lua);
+    SetJNIEnv(L,env);
+    jint result = lua_getglobal(L,cKey);
+    (*env)->ReleaseStringUTFChars(env,key,cKey);
+    return result;
+}

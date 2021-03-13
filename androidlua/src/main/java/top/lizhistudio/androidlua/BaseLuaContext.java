@@ -122,6 +122,15 @@ public abstract class BaseLuaContext implements LuaContext {
         setGlobal(key);
     }
 
+    public int require(String modeName)
+    {
+        getGlobal("require");
+        push(modeName.getBytes());
+        return pCall(1,1,0);
+    }
+
+
+
     public String coerceToString(int index)
     {
         switch (type(index))

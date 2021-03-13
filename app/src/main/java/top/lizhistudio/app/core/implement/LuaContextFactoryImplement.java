@@ -60,6 +60,11 @@ public class LuaContextFactoryImplement implements LuaContextFactory {
         {
             luaContextImplement.setGlobal("print",new PrintHandler());
         }
+
+        luaContextImplement.require("viewer");
+        luaContextImplement.setGlobal("Viewer");
+        luaContextImplement.require("screen");
+        luaContextImplement.setGlobal("Screen");
         return luaContextImplement;
     }
 

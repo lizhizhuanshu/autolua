@@ -16,7 +16,7 @@
 [MIT](LICENSE)
 
 ## 帮助我
-如果你有什么好的意见或者建议欢迎提交[Issues](https://github.com/lizhizhuanshu/autolua/issues)，或者[Pull request](https://github.com/lizhizhuanshu/autolua/pulls)
+如果你有什么好的意见或者建议欢迎提交**Issues**或者**Pull request**
 
 ## 其他
 框架仅仅只是个人非盈利性质的在维护的，所以对于问题的响应可能不会很快

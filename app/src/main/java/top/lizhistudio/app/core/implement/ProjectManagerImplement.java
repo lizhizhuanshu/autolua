@@ -44,7 +44,7 @@ public class ProjectManagerImplement implements ProjectManager {
     {
         if (rootPath != null)
             return;
-        rootPath = context.getFilesDir().getPath();
+        rootPath = context.getFilesDir().getAbsolutePath();
         projectPath = rootPath + "/"+"projects";
         configPath = rootPath + "/"+"config";
         try{

@@ -23,7 +23,7 @@
             android:label="@string/title_activity_main" />
 
         <service
-            android:name=".service.MainService"
+            android:name=".MainService"
             android:enabled="true"
             android:exported="true" />
 

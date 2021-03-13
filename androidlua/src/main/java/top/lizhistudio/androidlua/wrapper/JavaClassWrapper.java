@@ -31,7 +31,9 @@ public abstract class JavaClassWrapper extends JavaBaseWrapper<Class<?>> {
 
     @Override
     public int __call(LuaContext context) throws Throwable {
-        return 0;
+        Object r = content.newInstance();
+        context.push(content,r);
+        return 1;
     }
 
     @Override

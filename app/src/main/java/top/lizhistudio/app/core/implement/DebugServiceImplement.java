@@ -2,12 +2,17 @@ package top.lizhistudio.app.core.implement;
 
 import android.util.Log;
 
+import com.immomo.mls.MLSEngine;
+import com.immomo.mls.global.LVConfigBuilder;
+
 import org.apache.thrift.TException;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import top.lizhistudio.app.App;
 import top.lizhistudio.app.core.DebugListener;
 import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.thrift.DebuggerService;
@@ -107,6 +112,7 @@ public class DebugServiceImplement implements DebuggerService.Iface {
     {
 
         return new DebugListener() {
+            private final AtomicBoolean isStopped = new AtomicBoolean(false);
             @Override
             public void onLog(String message, String path, int line) {
                 //Log.d(TAG,"receive message "+message+" ");
@@ -116,15 +122,22 @@ public class DebugServiceImplement implements DebuggerService.Iface {
             @Override
             public void onStop() {
                 //Log.d(TAG,"send stop ");
-                sendMessage(new Message(MESSAGE_TYPE.STOP,null,null,-1));
+                if (isStopped.compareAndSet(false,true))
+                {
+                    sendMessage(new Message(MESSAGE_TYPE.STOP,null,null,-1));
+                }
+
             }
 
             @Override
             public void onError(String message, String path, int line) {
                 //Log.d(TAG,"send error ");
-                if (path != null)
-                    path = relativePath(rootPath,path);
-                sendMessage(new Message(MESSAGE_TYPE.ERROR,message,path,line));
+                if (isStopped.compareAndSet(false,true))
+                {
+                    if (path != null)
+                        path = relativePath(rootPath,path);
+                    sendMessage(new Message(MESSAGE_TYPE.ERROR,message,path,line));
+                }
             }
         };
     }
@@ -138,6 +151,12 @@ public class DebugServiceImplement implements DebuggerService.Iface {
             String projectPath = projectManager.getProjectPath(projectName);
             if (projectPath!= null)
             {
+                MLSEngine.setLVConfig(new LVConfigBuilder(App.getApp())
+                        .setRootDir(projectPath)
+                        .setImageDir(projectPath+"/image")
+                        .setCacheDir(App.getApp().getCacheDir().getAbsolutePath())
+                        .setGlobalResourceDir(projectPath+"/resource").build());
+
                 DebugListener listener = newListener(projectPath);
                 //此处需要注意
                 AutoLuaEngine.getInstance().register(DebugListener.SERVICE_NAME,

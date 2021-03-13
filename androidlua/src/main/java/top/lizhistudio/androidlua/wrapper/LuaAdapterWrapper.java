@@ -1,11 +1,8 @@
 package top.lizhistudio.androidlua.wrapper;
 
-import android.util.Log;
-
 import java.lang.reflect.Method;
 
 import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.androidlua.annotation.LuaMethod;
 
 public class LuaAdapterWrapper extends JavaClassWrapper{
     public LuaAdapterWrapper(Class<?> o) {

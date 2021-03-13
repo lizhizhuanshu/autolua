@@ -41,7 +41,7 @@ public interface LuaContext {
             return code;
         }
     }
-
+    long toPointer(int index);
     long toInteger(int index);
     double toNumber(int index);
     String toString(int index);
@@ -71,6 +71,7 @@ public interface LuaContext {
     int pCall(int argSum,int resultSum,int errorHandlerIndex);
 
     void setGlobal(String key);
+
     int type(int index);
     boolean isInteger(int index);
     void destroy();
@@ -78,7 +79,7 @@ public interface LuaContext {
     void pop(int n);
     int getTop();
     void setTop(int index);
-    boolean isJavaObjectWrapper(int index);
+    boolean isJavaObject(int index);
     boolean getStack(int level,DebugInfo debugInfo);
     boolean getInfo(String what,DebugInfo debugInfo);
 
@@ -90,5 +91,9 @@ public interface LuaContext {
     Object[] executeFile(String path);
     Object[] execute(String code);
 
+    void setGlobal(String key,Class<?> aClass, Object javaObject);
+    void setGlobal(String key,LuaHandler luaHandler);
+    void setGlobal(String key,Class<?> aClass);
 
+    String coerceToString(int index);
 }

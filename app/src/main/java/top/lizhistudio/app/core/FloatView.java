@@ -1,4 +1,4 @@
-package top.lizhistudio.app.core.ui;
+package top.lizhistudio.app.core;
 
 import top.lizhistudio.autolua.annotation.RPCInterface;
 import top.lizhistudio.autolua.annotation.RPCMethod;

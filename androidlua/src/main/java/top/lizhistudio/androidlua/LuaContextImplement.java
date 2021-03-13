@@ -23,6 +23,12 @@ public class LuaContextImplement extends BaseLuaContext {
     }
 
     @Override
+    public long toPointer(int index)
+    {
+        return LuaJava.toPointer(nativeLua,index);
+    }
+
+    @Override
     public long toInteger(int index) {
         return LuaJava.toInteger(nativeLua,index);
     }
@@ -81,7 +87,11 @@ public class LuaContextImplement extends BaseLuaContext {
 
     @Override
     public Object toJavaObject(int index, Class<?> aClass) {
-        if (aClass.isPrimitive())
+        if (aClass.equals(Object.class))
+        {
+            return toJavaObject(index);
+        }
+        else if (aClass.isPrimitive())
         {
             if (aClass == Integer.TYPE)
                 return (int)toInteger(index);
@@ -144,7 +154,9 @@ public class LuaContextImplement extends BaseLuaContext {
     {
         if (o == null)
             pushNil();
-        else if (aClass.isPrimitive())
+        if (aClass.equals(Object.class))
+            aClass = o.getClass();
+        if (aClass.isPrimitive())
         {
             if (aClass == Integer.TYPE)
                 push((int)o);
@@ -160,22 +172,14 @@ public class LuaContextImplement extends BaseLuaContext {
                 push((byte)o);
             else if (aClass == Short.TYPE)
                 push((short)o);
-        }else if (aClass.isAssignableFrom(Number.class)) {
-            if (aClass.isAssignableFrom(Integer.class))
-                push((int)o);
-            else if (aClass.isAssignableFrom(Long.class))
+        }else if (Number.class.isAssignableFrom(aClass)) {
+            if (Long.class.isAssignableFrom(aClass))
                 push((long)o);
-            else if (aClass.isAssignableFrom(Float.class))
-                push((float)o);
-            else if (aClass.isAssignableFrom(Double.class))
+            else if (Double.class.isAssignableFrom(aClass))
                 push((double)o);
-            else if (aClass.isAssignableFrom(Byte.class))
-                push((byte) o);
-            else if (aClass.isAssignableFrom(Short.class))
-                push((short)o);
-        }else if(aClass.isAssignableFrom(Boolean.class))
+        }else if(Boolean.class.equals(aClass))
             push((boolean)o);
-        else if(aClass.isAssignableFrom(String.class))
+        else if(String.class.isAssignableFrom(aClass))
             push(((String)o).getBytes());
         else
         {
@@ -315,7 +319,7 @@ public class LuaContextImplement extends BaseLuaContext {
     }
 
     @Override
-    public boolean isJavaObjectWrapper(int index) {
+    public boolean isJavaObject(int index) {
         return LuaJava.isJavaObjectWrapper(nativeLua,index);
     }
 

@@ -16,15 +16,12 @@ import androidx.fragment.app.Fragment;
 import com.immomo.mls.utils.MainThreadExecutor;
 
 import top.lizhistudio.app.App;
+import top.lizhistudio.app.FloatControllerListener;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
-//TODO 设置端口，控制调试器开关的界面，最好显示当前的ip地址
-//TODO debuggerServer 增加一个监听器方法
+import top.lizhistudio.app.view.FloatControllerView;
 
-//TODO 实现VSCode 调试器插件
-
-//TODO 将本地地址转换成相对地址
 public class ProjectsFragment extends Fragment {
     private LinearLayout projectsView;
     private ProjectManager.Observer observer;
@@ -85,8 +82,9 @@ public class ProjectsFragment extends Fragment {
         startProject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                App.getApp().getFloatControllerView().show();
-                App.getApp().getFloatControllerView().reShow();
+                FloatControllerView controllerView = App.getApp().getFloatControllerView();
+                controllerView.setOnClickListener(new FloatControllerListener(name));
+                controllerView.reShow();
                 getActivity().finish();
             }
         });

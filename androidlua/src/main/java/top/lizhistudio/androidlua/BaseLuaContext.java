@@ -24,7 +24,7 @@ public abstract class BaseLuaContext implements LuaContext {
         try{
             if (type(-1) == LUA_TSTRING)
                 throw new LuaInvokeError(toString(-1));
-            if (isJavaObjectWrapper(-1))
+            if (isJavaObject(-1))
             {
                 Object javaObject = toJavaObject(-1);
                 if (javaObject instanceof LuaError)
@@ -101,5 +101,54 @@ public abstract class BaseLuaContext implements LuaContext {
     public Object[] execute(String code)
     {
         return execute(code.getBytes());
+    }
+
+
+    public void setGlobal(String key,Class<?> aClass, Object javaObject)
+    {
+        push(aClass,javaObject);
+        setGlobal(key);
+    }
+
+    public void setGlobal(String key,LuaHandler luaHandler)
+    {
+        push(luaHandler);
+        setGlobal(key);
+    }
+
+    public void setGlobal(String key,Class<?> aClass)
+    {
+        push(aClass);
+        setGlobal(key);
+    }
+
+    public String coerceToString(int index)
+    {
+        switch (type(index))
+        {
+            case LUA_TNONE:
+            case LUA_TNIL:return "nil";
+            case LUA_TBOOLEAN:return String.valueOf(toBoolean(index));
+            case LUA_TFUNCTION:return "function@"+toPointer(index);
+            case LUA_TLIGHTUSERDATA:return "lightUserdata@"+toPointer(index);
+            case LUA_TNUMBER:{
+                if (isInteger(index))
+                {
+                    return String.valueOf(toInteger(index));
+                }
+                return String.valueOf(toNumber(index));
+            }
+            case LUA_TSTRING:return toString(index);
+            case LUA_TTABLE:return "table@"+toPointer(index);
+            case LUA_TTHREAD:return "thread@"+toPointer(index);
+            case LUA_TUSERDATA:{
+                if (isJavaObject(index))
+                {
+                    return toJavaObject(index).toString();
+                }else
+                    return "userdata@"+toPointer(index);
+            }
+        }
+        return "unknown";
     }
 }

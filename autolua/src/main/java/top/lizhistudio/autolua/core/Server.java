@@ -48,7 +48,7 @@ public class Server {
         {
             Object message = transport.receive();
             if (message instanceof Request &&
-                    ((Request)message).serviceName == null &&
+                    ((Request)message).serviceID == null &&
                     ((Request)message).callID == 0)
                 break;
             executorService.execute(new Runnable() {

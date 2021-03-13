@@ -349,7 +349,7 @@ public class AutoLuaEngine {
     {
         if (compareAndSet(STATE.RUNNING,STATE.STOPPING))
         {
-            transport.send(new Request());
+            clientHandler.sendExitRequest();
             isRunning.set(false);
             receiveThread.interrupt();
             transport = null;

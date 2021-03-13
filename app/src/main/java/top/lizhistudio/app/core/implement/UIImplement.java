@@ -1,17 +1,35 @@
-package top.lizhistudio.app.core.ui;
+package top.lizhistudio.app.core.implement;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.PixelFormat;
+import android.os.Build;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.immomo.mls.InitData;
 import com.immomo.mls.MLSInstance;
+import com.immomo.mls.annotation.LuaBridge;
+import com.immomo.mls.annotation.LuaClass;
+import com.immomo.mls.utils.MainThreadExecutor;
+
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.LuaValue;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class UIImplement implements UI {
+import top.lizhistudio.app.core.AbstractUI;
+import top.lizhistudio.app.core.FloatView;
+import top.lizhistudio.app.core.UI;
+
+public class UIImplement extends AbstractUI {
+    private static final String TAG = "UI";
     private Context context;
     private final LinkedBlockingQueue<Object> blockingQueue;
     private final ConcurrentHashMap<String, WeakReference<FloatView>> floatViewCache;
@@ -20,19 +38,57 @@ public class UIImplement implements UI {
         floatViewCache = new ConcurrentHashMap<>();
     }
 
+    private static void log(String message)
+    {
+        Log.d("UI",message);
+    }
+
+
     @Override
     public FloatView newFloatView(String name,String uri, WindowManager.LayoutParams layoutParams) {
-        MLSInstance instance = new MLSInstance(context,false,false);
-        instance.setData(new InitData(uri));
-        if (!instance.isValid())
-            return null;
-        FloatView r = new FloatViewImplement(name,context,layoutParams,instance);
-        floatViewCache.put(name,new WeakReference<>(r));
-        return r;
+        AtomicReference<FloatView> result = new AtomicReference<>(null);
+        synchronized (result)
+        {
+            MainThreadExecutor.post(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        MLSInstance instance = new MLSInstance(context,false,false);
+                        FrameLayout frameLayout = new FrameLayout(context);
+                        instance.setContainer(frameLayout);
+                        instance.setData(new InitData(uri));
+                        if (!instance.isValid())
+                        {
+                            return;
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+                        } else {
+                            layoutParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+                        }
+                        FloatView r = new FloatViewImplement(name,context,layoutParams,frameLayout,instance);
+                        floatViewCache.put(name,new WeakReference<>(r));
+                        result.set(r);
+                    }finally {
+                        synchronized (result)
+                        {
+                            result.notifyAll();
+                        }
+                    }
+                }
+            });
+            try{
+                result.wait();
+            }catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            return result.get();
+        }
     }
 
     @Override
-    public Object takeMessage() throws InterruptedException {
+    public Object takeSignal() throws InterruptedException {
         return blockingQueue.take();
     }
 
@@ -46,7 +102,17 @@ public class UIImplement implements UI {
     }
 
     @Override
-    public void putMessage(Object message) throws InterruptedException {
+    public void showMessage(String message,int time) {
+        MainThreadExecutor.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context, message,time).show();
+            }
+        });
+    }
+
+    @Override
+    public void putSignal(Object message) throws InterruptedException {
         blockingQueue.put(message);
     }
 

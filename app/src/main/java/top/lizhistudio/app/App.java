@@ -4,18 +4,23 @@ import android.app.Application;
 import android.content.Intent;
 import android.util.Log;
 
+import com.immomo.mls.MLSBuilder;
 import com.immomo.mls.MLSEngine;
+import com.immomo.mls.global.LVConfig;
 import com.immomo.mls.global.LVConfigBuilder;
 
 
 import android.os.Environment;
 
 import com.immomo.mls.fun.lt.SIApplication;
+import com.immomo.mls.global.LuaViewConfig;
 
 import org.luaj.vm2.Globals;
 
+import top.lizhistudio.app.core.UI;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
-import top.lizhistudio.app.service.MainService;
+import top.lizhistudio.app.core.implement.UIImplement;
+import top.lizhistudio.app.core.implement.UserdataUI;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.app.core.implement.LuaInterpreterFactoryImplement;
 import top.lizhistudio.app.provider.GlideImageProvider;
@@ -24,7 +29,6 @@ import top.lizhistudio.app.view.FloatControllerViewImplement;
 
 
 public class App extends Application {
-    public String SD_CARD_PATH;
     private static App app;
     private FloatControllerView floatControllerView;
 
@@ -47,8 +51,16 @@ public class App extends Application {
                 .setProcessPrint(true)
                 .setPackagePath(this.getPackageCodePath())
                 .setLuaInterpreterFactory(LuaInterpreterFactoryImplement.class);
+        autoLuaEngine.register(UI.SERVICE_NAME,UI.class,UIImplement.getInstance());
+
         autoLuaEngine.attach(new EngineObserver());
     }
+
+    private String getScriptPath()
+    {
+        return this.getFilesDir().getPath()+"/"+"projects";
+    }
+
 
     private void initializeMLSEngine()
     {
@@ -57,37 +69,23 @@ public class App extends Application {
         registerActivityLifecycleCallbacks(new ActivityLifecycleMonitor());
         /// ---------------------END-------------------
 
-        MLSEngine.init(this, true)//BuildConfig.DEBUG)
-                .setLVConfig(new LVConfigBuilder(this)
-                        .setRootDir(SD_CARD_PATH)
-                        .setCacheDir(SD_CARD_PATH + "cache")
-                        .setImageDir(SD_CARD_PATH + "image")
-                        .setGlobalResourceDir(SD_CARD_PATH + "g_res")
-                        .build())
+        MLSEngine.init(this, false)//BuildConfig.DEBUG)
                 .setImageProvider(new GlideImageProvider())             //设置图片加载器，若不设置，则不能显示图片
                 .setDefaultLazyLoadImage(false)
+                .registerSingleInsance(new MLSBuilder.SIHolder(UserdataUI.LUA_CLASS_NAME,UserdataUI.class))
                 .build(true);
     }
 
-    private void initializeFloatController()
-    {
-        floatControllerView = new FloatControllerViewImplement(this,40);
-        floatControllerView.setOnClickListener(new FloatControllerView.OnClickListener() {
-            @Override
-            public void onClick(FloatControllerView floatControllerView, int state) {
 
-            }
-        });
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
         app = this;
-        init();
         initializeMLSEngine();
         initializeAutoLuaEngine();
-        initializeFloatController();
+        floatControllerView = new FloatControllerViewImplement(this,40);
+        UIImplement.getInstance().initialize(this);
         ProjectManagerImplement.getInstance().initialize(this);
         log("onCreate: " + Globals.isInit() + " " + Globals.isIs32bit());
     }
@@ -104,16 +102,6 @@ public class App extends Application {
         return sPackageName;
     }
 
-    private void init() {
-        try {
-            SD_CARD_PATH = Environment.getExternalStorageDirectory().getAbsolutePath();
-            if (!SD_CARD_PATH.endsWith("/")) {
-                SD_CARD_PATH += "/";
-            }
-            SD_CARD_PATH += "AutoLua/";
-        } catch (Exception e) {
-        }
-    }
 
     private static void log(String s) {
         Log.d("app", s);

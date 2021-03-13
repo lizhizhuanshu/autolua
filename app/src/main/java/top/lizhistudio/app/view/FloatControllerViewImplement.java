@@ -49,6 +49,7 @@ public class FloatControllerViewImplement extends BroadcastReceiver implements F
         layoutParams = new WindowManager.LayoutParams();
         layoutParams.width = dipToPx(imageDiameter);
         layoutParams.height = dipToPx(imageDiameter);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         } else {

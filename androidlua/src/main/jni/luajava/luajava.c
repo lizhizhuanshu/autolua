@@ -686,3 +686,9 @@ Java_top_lizhistudio_androidlua_DebugInfo_isVarArg(JNIEnv *env, jclass clazz, jl
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->isvararg;
 }
+
+JNIEXPORT jlong JNICALL
+Java_top_lizhistudio_androidlua_LuaJava_toPointer(JNIEnv *env, jclass clazz, jlong native_lua,
+                                                  jint index) {
+    return (jlong)lua_topointer(toLuaState(native_lua),index);
+}

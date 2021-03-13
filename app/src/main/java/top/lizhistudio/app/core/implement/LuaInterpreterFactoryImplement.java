@@ -36,19 +36,6 @@ public class LuaInterpreterFactoryImplement implements LuaInterpreterFactory {
             }
         }
 
-        private String getMessage(LuaContext context)
-        {
-            if (context.type(-1) == LuaContext.LUA_TSTRING)
-                return context.toString(-1);
-            if (context.isJavaObjectWrapper(-1))
-            {
-                Object o = context.toJavaObject(-1);
-                if (o instanceof Throwable)
-                    return ((Throwable)o).getMessage();
-                return o.toString();
-            }
-            return "unknown";
-        }
 
         @Override
         public int onExecute(LuaContext luaContext) throws Throwable {
@@ -60,7 +47,7 @@ public class LuaInterpreterFactoryImplement implements LuaInterpreterFactory {
                 luaContext.getInfo("Sl",debugInfo);
                 String path = debugInfo.getSource();
                 int currentLine = debugInfo.getCurrentLine();
-                String message = getMessage(luaContext);
+                String message = luaContext.coerceToString(-1);
                 debugListener.onError(message,path,currentLine);
             }
             return 1;

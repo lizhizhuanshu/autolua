@@ -14,6 +14,7 @@ public class LuaJava {
     static native long newLuaState(LuaContext context);
     static native void closeLuaState(long nativeLua);
 
+    static native long toPointer(long nativeLua,int index);
     static native long toInteger(long nativeLua,int index) throws LuaTypeError;
     static native double toNumber(long nativeLua,int index)throws LuaTypeError;
     static native byte[] toBytes(long nativeLua,int index)throws LuaTypeError;

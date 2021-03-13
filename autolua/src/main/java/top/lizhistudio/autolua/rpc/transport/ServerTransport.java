@@ -1,10 +1,10 @@
 package top.lizhistudio.autolua.rpc.transport;
 
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
+import java.io.NotSerializableException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.lizhistudio.autolua.rpc.message.Request;
@@ -77,13 +77,18 @@ public class ServerTransport implements Transport {
         {
             TSocket socket = getSession();
             try{
+
                 synchronized (sendMutex)
                 {
                     socket.getOutputStream().writeObject(o);
                     socket.getOutputStream().flush();
                     break;
                 }
-            }catch (IOException e)
+            }catch (NotSerializableException e)
+            {
+                e.printStackTrace(System.err);
+            }
+            catch (IOException e)
             {
                 closeSession();
             }

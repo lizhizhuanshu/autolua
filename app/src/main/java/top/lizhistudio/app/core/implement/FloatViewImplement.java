@@ -1,6 +1,7 @@
-package top.lizhistudio.app.core.ui;
+package top.lizhistudio.app.core.implement;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
@@ -9,8 +10,7 @@ import com.immomo.mls.MLSInstance;
 import com.immomo.mls.utils.MainThreadExecutor;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
-import top.lizhistudio.app.core.ui.FloatView;
+import top.lizhistudio.app.core.FloatView;
 
 public class FloatViewImplement implements FloatView {
     private final static int DESTROYED = 0;
@@ -20,26 +20,24 @@ public class FloatViewImplement implements FloatView {
     private Context context;
     private final WindowManager windowManager;
     private final WindowManager.LayoutParams layoutParams;
-    private FrameLayout frameLayout;
     private final MLSInstance mlsInstance ;
-    private final AtomicInteger state = new AtomicInteger(0);
+    private final AtomicInteger state;
 
     private final Runnable showRunnable;
     private final Runnable concealRunnable;
     private final Runnable updateRunnable;
     public FloatViewImplement(String name, Context context,
                               WindowManager.LayoutParams layoutParams,
+                              FrameLayout frameLayout,
                               MLSInstance mlsInstance)
     {
+        this.state = new AtomicInteger(CONCEAL);
         this.name = name;
         this.context = context.getApplicationContext();
         this.windowManager = (WindowManager)this.context.
                 getSystemService(Context.WINDOW_SERVICE);
         this.layoutParams = layoutParams;
-        this.frameLayout = new FrameLayout(this.context);
         this.mlsInstance = mlsInstance;
-        this.mlsInstance.setContainer(frameLayout);
-
         showRunnable = new Runnable() {
             @Override
             public void run() {
@@ -124,7 +122,6 @@ public class FloatViewImplement implements FloatView {
     public void destroy() {
         if (state.compareAndSet(CONCEAL,DESTROYED))
         {
-            frameLayout = null;
             context = null;
             MainThreadExecutor.post(new Runnable() {
                 @Override

@@ -1,4 +1,4 @@
-package top.lizhistudio.app.service;
+package top.lizhistudio.app;
 
 import android.app.Notification;
 import android.app.NotificationChannel;

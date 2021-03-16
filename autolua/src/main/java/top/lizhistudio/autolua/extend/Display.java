@@ -20,18 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import top.lizhistudio.autolua.conceal.IWindowManager;
 import top.lizhistudio.autolua.conceal.SurfaceControlWrap;
 
-public class Screen {
-    private static final int  VERTICAL = 1;
-    private static final int  LEVEL = -1;
-
-    private static final Point baseSize= new Point();
-    private static final int defaultDirection;
-
-    static {
-        IWindowManager.getBaseDisplaySize(IWindowManager.MAIN_DISPLAY_TOKEN, baseSize);
-        defaultDirection = baseSize.x >baseSize.y ? LEVEL:VERTICAL;
-    }
-
+public class Display {
     private final AtomicBoolean isDestroy = new AtomicBoolean(false);
     private int recordDirection;
     private final IBinder iBinder;
@@ -41,8 +30,7 @@ public class Screen {
     private ImageReader imageReader;
     private Image nowImage = null;
 
-
-    public Screen()
+    public Display(int width,int height) throws InterruptedException
     {
         iBinder = SurfaceControlWrap.createDisplay("Display@"+hashCode(),false);
         nowSize = new Point();
@@ -50,6 +38,7 @@ public class Screen {
         handlerThread = new HandlerThread("worker@"+hashCode());
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
+        reset(width,height);
     }
 
     public synchronized void destroy()
@@ -74,7 +63,7 @@ public class Screen {
 
     private int getDirection()
     {
-        return IWindowManager.getRotation()%2 == 0 ? defaultDirection: -defaultDirection;
+        return IWindowManager.getRotation()%2 == 0 ? Screen.getDirection(): -Screen.getDirection();
     }
 
     public boolean checkDirection()
@@ -82,30 +71,33 @@ public class Screen {
         return getDirection() == recordDirection;
     }
 
-    public synchronized void initialize(int width, int height)
+    public synchronized void reset(int width, int height) throws InterruptedException
     {
         recordDirection = getDirection();
+        int baseWidth = Screen.getWidth();
+        int baseHeight = Screen.getHeight();
+        int baseDirection = Screen.getDirection();
         if (width <=0 && height<=0)
         {
-            if(recordDirection != defaultDirection)
+            if(recordDirection != baseDirection)
             {
-                width = baseSize.y;
-                height = baseSize.x;
+                width = baseHeight;
+                height = baseWidth;
             }else
             {
-                width = baseSize.x;
-                height = baseSize.y;
+                width = baseWidth;
+                height = baseHeight;
             }
         }
         int baseX,baseY;
-        if(recordDirection != defaultDirection)
+        if(recordDirection != baseDirection)
         {
-            baseX = baseSize.y;
-            baseY = baseSize.x;
+            baseX = baseHeight;
+            baseY = baseWidth;
         }else
         {
-            baseX = baseSize.x;
-            baseY = baseSize.y;
+            baseX = baseWidth;
+            baseY = baseHeight;
         }
         nowSize.x = width;
         nowSize.y = height;
@@ -123,7 +115,6 @@ public class Screen {
             }
         },handler);
 
-
         SurfaceControlWrap.openTransaction();
         try{
             SurfaceControlWrap.setDisplaySurface(iBinder,imageReader.getSurface());
@@ -133,6 +124,7 @@ public class Screen {
         }finally {
             SurfaceControlWrap.closeTransaction();
         }
+        update();
     }
 
 
@@ -239,16 +231,6 @@ public class Screen {
 
     public int getPixelStride(){
         return  nowImage.getPlanes()[0].getPixelStride();
-    }
-
-    private static final class Default
-    {
-        private static final Screen instance = new Screen();
-    }
-
-    public static Screen getDefault()
-    {
-        return Default.instance;
     }
 
 }

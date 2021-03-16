@@ -2,6 +2,8 @@ package top.lizhistudio.androidlua;
 
 import androidx.annotation.NonNull;
 
+import java.lang.reflect.Field;
+
 import top.lizhistudio.androidlua.exception.LuaError;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
 import top.lizhistudio.androidlua.exception.LuaLoadError;
@@ -129,6 +131,23 @@ public abstract class BaseLuaContext implements LuaContext {
         return pCall(1,1,0);
     }
 
+    public <T> void tableToStruct(int tableIndex,@NonNull T object) throws IllegalAccessException {
+        Class<?> tClass = object.getClass();
+        for (Field field:tClass.getFields())
+        {
+            String name = field.getName();
+            int type = getField(tableIndex,name);
+            try{
+                if(type != LuaContext.LUA_TNIL)
+                {
+                    Object o = toJavaObject(-1,field.getType());
+                    field.set(object,o);
+                }
+            }finally {
+                pop(1);
+            }
+        }
+    }
 
 
     public String coerceToString(int index)

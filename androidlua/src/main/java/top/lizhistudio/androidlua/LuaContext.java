@@ -107,5 +107,7 @@ public interface LuaContext {
 
     int require(String modeName);
 
+    <T> void tableToStruct(int tableIndex,@NonNull T object) throws IllegalAccessException;
+
     String coerceToString(int index);
 }

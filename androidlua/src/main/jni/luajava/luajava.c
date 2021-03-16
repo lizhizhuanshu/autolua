@@ -70,6 +70,7 @@ static jmethodID LuaHandlerCallID = NULL;
 JNIEnv *GetJNIEnv(lua_State*L)
 {
     JNIEnv *env;
+
     if ((*GlobalJavaVm)->GetEnv(GlobalJavaVm,(void**)&env, JNI_VERSION_1_6) != JNI_OK) {
         //TODO 没想好非java线程该怎么样处理，所以此处直接报错
         luaL_error(L,"now thread is not java thread");

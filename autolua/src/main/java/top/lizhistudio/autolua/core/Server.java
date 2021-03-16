@@ -30,9 +30,6 @@ public class Server {
     private final ExecutorService executorService;
     private static Server self = null;
 
-    static {
-        System.loadLibrary("screen");
-    }
 
     public Server(Transport transport, ClientHandler clientHandler,ServiceHandler serviceHandler)
     {
@@ -133,7 +130,6 @@ public class Server {
                 self = new Server(transport,clientHandler,serviceHandler);
                 System.out.println(1);
                 self.serve();
-                Screen.getDefault().destroy();
                 System.exit(0);
             }
         }catch (Throwable e)

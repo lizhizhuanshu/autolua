@@ -56,15 +56,15 @@ public class LuaContextFactoryImplement implements LuaContextFactory {
         LuaContextImplement luaContextImplement = new LuaContextImplement(javaObjectWrapperFactory);
         luaContextImplement.setGlobal(UI.SERVICE_NAME,UI.class,new UIProxy(getService(UI.SERVICE_NAME,UI.class)));
         luaContextImplement.setGlobal("LayoutParams", WindowManager.LayoutParams.class);
+        luaContextImplement.getGlobal("package");
+        luaContextImplement.getField(-1,"loaded");
+        luaContextImplement.push(Controller.getDefault());
+        luaContextImplement.setField(-2,"controller");
+        luaContextImplement.pop(2);
         if (getService(DebugListener.SERVICE_NAME,DebugListener.class)!= null)
         {
             luaContextImplement.setGlobal("print",new PrintHandler());
         }
-
-        luaContextImplement.require("viewer");
-        luaContextImplement.setGlobal("Viewer");
-        luaContextImplement.require("screen");
-        luaContextImplement.setGlobal("Screen");
         return luaContextImplement;
     }
 

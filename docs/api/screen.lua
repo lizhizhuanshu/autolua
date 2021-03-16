@@ -1,32 +1,41 @@
-
----@class Screen:DisplayBuffer
 local M = {}
 
----虚拟屏幕对象，可以通过他获取屏幕颜色数据，和屏幕的宽高，
----旋转方向等，使用此对象前必须初始化
-Screen = M
-
----初始化函数，屏幕对象使用前必须初始化，当宽高都为0时，会根据当前
----屏幕的宽高进行初始化
----@param width integer 虚拟屏幕的宽
----@param height integer 虚拟屏幕的高
-function M:initialize(width,height)
-end
-
----获取当前虚拟屏幕的宽度和高度
----@return integer 当前虚拟屏幕的宽度
----@return integer 当前虚拟屏幕的高度
-function M:getWidthHeight()
-end
-
----检测当前虚拟屏幕的旋转方向是否与初始化的方向一致
----@return boolean 如果方向改变了会返回false，没改变返回true
-function M:checkDirection()
-end
-
----更新虚拟屏幕的颜色数据，请注意不调用此函数的话，
----虚拟屏幕的颜色数据是不会改变的
-function M:update()
+---获取屏幕的宽
+---@return integer
+function M.getWidth()
     
 end
 
+---获取屏幕的高
+---@return integer
+function M.getHeight()
+    
+end
+
+---获取屏幕的旋转方向
+---@return integer
+function M.getRotation()
+    
+end
+
+---获取当前手机使水平还是垂直状态
+---@return integer
+function M.getDirection()
+    
+end
+
+---获取当前屏幕密度
+---@return integer
+function M.getDensity()
+    
+end
+
+---创建一个虚拟显示，用于找图找色等功能
+---@param width integer 虚拟屏幕的宽
+---@param height integer 虚拟屏幕的高
+---@return VirtualDisplay 新的虚拟屏幕
+function M.newDisplay(width,height)
+    
+end
+
+return M

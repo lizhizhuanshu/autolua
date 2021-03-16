@@ -6,8 +6,8 @@ UI= {}
 
 ---创建一个新的悬浮窗口对象
 ---@param name string 悬浮窗口得名字，每个悬浮窗口名字必须不同
----@param uri string  悬浮窗口加载脚本得路径
----@param layoutParams LayoutParams 悬浮窗口得布局参数
+---@param uri string  悬浮窗口加载脚本得uri
+---@param layoutParams LayoutParams 悬浮窗口得布局参数,可以为 nil
 function UI:newFloatView(name,uri,layoutParams)
     
 end

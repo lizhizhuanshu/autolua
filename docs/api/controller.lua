@@ -1,9 +1,6 @@
+---控制器对象，负责向手机发送模拟事件
 ---@class Controller
 local M = {}
-
----控制器对象，负责向手机发送模拟事件
-Controller = M
-
 
 ---按下手指
 ---@param x number 手指所在点的横坐标
@@ -31,3 +28,5 @@ end
 function M:touchUp(pointerID)
     
 end
+
+return M

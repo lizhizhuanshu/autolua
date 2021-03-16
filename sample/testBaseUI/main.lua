@@ -1,28 +1,32 @@
 local screen = require "screen"
 local controller = require "controller"
 local viewer = require "viewer"
+local thread = require "thread"
+
 local display = screen.newDisplay(0,0)
 print(display)
 print(display:getWidthHeight())
-print(viewer.getColor(display,500,500))
+local color = viewer.getColor(display,100,100)
+print("坐标100，100的bgr颜色是",string.format("%06X",color))
 
 print(screen.getWidth(),screen.getHeight())
---print(screen:getWidthHeight())
 print(controller)
--- print(viewer.getColor(screen,150,150))
-print(LayoutParams)
-print(LayoutParams.TYPE_TOAST)
-local layout = LayoutParams()
-print(layout)
 
-layout.width  = 500
-layout.height = 500
+---@type LayoutParams
+local layoutParams = {
+    width = 800,
+    height = 800,
+    flags = LayoutParamsFlags.FLAG_NOT_FOCUSABLE,
+    format = PixelFormat.RGBA_8888,
+}
 
-local floatView = UI:newFloatView("test","file://view.lua",layout)
+local floatView = UI:newFloatView("test","file://view.lua",layoutParams)
 print(floatView)
-print(layout)
+print("开始延时5秒")
+thread.sleep(5000)
+
 print(floatView:show())
-local message = UI:takeSignal()
-print(message[0],message[1])
-print(type(message[0]))
+
+
+print(UI:takeSignal())
 floatView:conceal()

@@ -68,7 +68,7 @@ public class LuaContextTest {
         context.push(new Wife("who"));
         //保存在lua的全局表中
         context.setGlobal("myWife");
-        Object[] result = context.execute("return myWife:getName(),myWife:getAge()".getBytes(),"test");
+        Object[] result = context.execute("return myWife:getName(),myWife:getAge()");
         //验证一下结果
         assert "who".equals(result[0]);
         assertEquals(18L,result[1]);
@@ -76,7 +76,7 @@ public class LuaContextTest {
         context.push(Wife.class);
         //保存在lua的全局表中
         context.setGlobal("Wife");
-        result = context.execute("return Wife:where()".getBytes(),"test");
+        result = context.execute("return Wife:where()");
         //返回的应该是Wife类型的对象
         Wife wife = (Wife)result[0];
         //验证一下结果

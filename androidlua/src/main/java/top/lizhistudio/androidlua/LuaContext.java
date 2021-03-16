@@ -83,6 +83,15 @@ public interface LuaContext {
     boolean getStack(int level,DebugInfo debugInfo);
     boolean getInfo(String what,DebugInfo debugInfo);
     int getGlobal(String key);
+    int getField(int tableIndex,String key);
+
+    void setI(int tableIndex,long n);
+    void setTable(int tableIndex);
+    void setField(int tableIndex,String key);
+
+
+
+
 
     Object[] execute(byte[] code,String chunkName,int errorHandlerIndex);
     Object[] executeFile(String path,int errorHandlerIndex);

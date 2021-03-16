@@ -338,6 +338,26 @@ public class LuaContextImplement extends BaseLuaContext {
         return LuaJava.getGlobal(nativeLua,key);
     }
 
+    @Override
+    public int getField(int tableIndex, String key) {
+        return LuaJava.getField(nativeLua,tableIndex,key);
+    }
+
+    @Override
+    public void setI(int tableIndex, long n) {
+        LuaJava.setI(nativeLua,tableIndex,n);
+    }
+
+    @Override
+    public void setTable(int tableIndex) {
+        LuaJava.setTable(nativeLua,tableIndex);
+    }
+
+    @Override
+    public void setField(int tableIndex, String key) {
+        LuaJava.setField(nativeLua,tableIndex,key);
+    }
+
 
     @NativeLuaUseMethod
     public void cacheJavaObject(long id, Object o) {

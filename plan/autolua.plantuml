@@ -1,0 +1,13 @@
+@startuml autolua
+interface AutoLuaEngine
+{
+    void start();
+    void stop();
+    void destroy();
+    LuaInterpreter getLuaInterpreter();
+    void register(Class aClass,Object object);
+}
+
+
+
+@enduml

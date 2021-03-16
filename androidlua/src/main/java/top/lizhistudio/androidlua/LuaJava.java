@@ -11,7 +11,7 @@ public class LuaJava {
         System.loadLibrary("luajava");
     }
 
-    static native long newLuaState(LuaContext context);
+    static native long newLuaState(LuaContextImplement context);
     static native void closeLuaState(long nativeLua);
 
     static native long toPointer(long nativeLua,int index);
@@ -40,18 +40,23 @@ public class LuaJava {
     static native int pCall(long nativeLua, int argNumber, int resultNumber, int errorFunctionIndex);
 
 
-    static native void setGlobal(long nativeLua,String key);
 
     static native int type(long nativeLua,int index);
     static native boolean isInteger(long nativeLua,int index);
     static native boolean isJavaObjectWrapper(long nativeLua,int index);
     static native JavaObjectWrapper toJavaObject(long nativeLua, int index);
-    static native int getTop(long nativeLua);
+
+    static native void setGlobal(long nativeLua,String key);
     static native void setTop(long nativeLua,int index);
-    static native int getGlobal(long nativeLua,String key);
+    static native void setField(long nativeLua,int tableIndex, String key);
+    static native void setI(long nativeLua,int tableIndex,long n);
+    static native void setTable(long nativeLua,int tableIndex);
 
     static native void pop(long nativeLua, int n);
 
+    static native int getTop(long nativeLua);
+    static native int getGlobal(long nativeLua,String key);
+    static native int getField(long nativeLua,int tableIndex,String key);
     static native boolean getStack(long nativeLua,int level,DebugInfo debugInfo);
     static native boolean getInfo(long nativeLua,String what,DebugInfo debugInfo);
 

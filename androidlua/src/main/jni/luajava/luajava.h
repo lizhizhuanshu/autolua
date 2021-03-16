@@ -7,16 +7,11 @@
 
 #include <jni.h>
 #include "lua.h"
-
-typedef struct {
-    JNIEnv *env;
-    jobject context;
-}LuaExtension;
-
-#define toLuaState(L) ((lua_State*)L)
-#define GetLuaExtension(L) (*((LuaExtension**)lua_getextraspace(L)))
-#define SetLuaExtension(L,p) (*((LuaExtension**)lua_getextraspace(L)) = p)
-#define SetJNIEnv(L,p) ((*((LuaExtension**)lua_getextraspace(L)))->env = p)
-#define GetJNIEnv(L) (GetLuaExtension(L)->env)
-
+#define JavaFindClass(env,str) (*env)->FindClass(env,str)
+#define FreeLocalObject(env,obj)  (*env)->DeleteLocalRef(env,obj)
+JNIEnv* GetJNIEnv(lua_State*L);
+void CacheJavaObject(lua_State*L, JNIEnv*env, jlong id, jobject object);
+jobject GetJavaObject(lua_State*L,JNIEnv*env,jlong id);
+void ReleaseJavaObject(lua_State*L, JNIEnv*env, jlong id);
+int javaObjectDestroy(lua_State*L);
 #endif //AUTOLUA_LUAJAVA_H

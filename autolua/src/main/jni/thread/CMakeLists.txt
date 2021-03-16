@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(lizhi)
+project(thread)
 
 aux_source_directory(. DIR_SRCS)
 

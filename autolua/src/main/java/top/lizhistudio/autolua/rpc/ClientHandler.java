@@ -42,14 +42,6 @@ public class ClientHandler {
 
     private Object sendAndGetResult(Request request,Class<?> aClass) throws InterruptedException
     {
-
-        if ( "newFloatView".equals(request.methodName))
-        {
-            for(Object o:(Object[])request.params)
-            {
-                System.err.println(o.toString());
-            }
-        }
         SyncCallback syncCallback = new SyncCallback();
         if (aClass != null && aClass.isAnnotationPresent(RPCInterface.class))
             callbackCache.push(request.callID,new RPCInterfaceCallback(aClass,syncCallback));

@@ -2,33 +2,26 @@ package top.lizhistudio.app.core.implement;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.immomo.mls.InitData;
 import com.immomo.mls.MLSInstance;
-import com.immomo.mls.annotation.LuaBridge;
-import com.immomo.mls.annotation.LuaClass;
 import com.immomo.mls.utils.MainThreadExecutor;
-
-import org.luaj.vm2.Globals;
-import org.luaj.vm2.LuaValue;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import top.lizhistudio.app.core.AbstractUI;
+import top.lizhistudio.androidlua.Util;
 import top.lizhistudio.app.core.FloatView;
 import top.lizhistudio.app.core.UI;
 
-public class UIImplement extends AbstractUI {
+public class UIImplement implements UI {
     private static final String TAG = "UI";
     private Context context;
     private final LinkedBlockingQueue<Object> blockingQueue;
@@ -45,7 +38,7 @@ public class UIImplement extends AbstractUI {
 
 
     @Override
-    public FloatView newFloatView(String name,String uri, WindowManager.LayoutParams layoutParams) {
+    public FloatView newFloatView(String name,String uri, LayoutParams layoutParams) {
         AtomicReference<FloatView> result = new AtomicReference<>(null);
         synchronized (result)
         {
@@ -58,15 +51,15 @@ public class UIImplement extends AbstractUI {
                         instance.setContainer(frameLayout);
                         instance.setData(new InitData(uri));
                         if (!instance.isValid())
-                        {
                             return;
-                        }
+                        WindowManager.LayoutParams rawLayoutParams = layoutParams==null?
+                                new WindowManager.LayoutParams():layoutParams.toRawLayoutParams();
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+                            rawLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
                         } else {
-                            layoutParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+                            rawLayoutParams.type = WindowManager.LayoutParams.TYPE_PHONE;
                         }
-                        FloatView r = new FloatViewImplement(name,context,layoutParams,frameLayout,instance);
+                        FloatView r = new FloatViewImplement(name,context,rawLayoutParams,frameLayout,instance);
                         floatViewCache.put(name,new WeakReference<>(r));
                         result.set(r);
                     }finally {

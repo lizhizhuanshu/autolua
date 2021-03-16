@@ -1,9 +1,9 @@
 package top.lizhistudio.app.core.implement;
 
-import android.os.Parcel;
-import android.view.WindowManager;
 
-import java.io.Serializable;
+import android.graphics.PixelFormat;
+import android.view.Gravity;
+import android.view.WindowManager;
 
 import top.lizhistudio.androidlua.DebugInfo;
 import top.lizhistudio.androidlua.JavaObjectWrapperFactory;
@@ -16,13 +16,13 @@ import top.lizhistudio.androidlua.wrapper.JavaStructWrapper;
 import top.lizhistudio.app.core.DebugListener;
 import top.lizhistudio.app.core.FloatView;
 import top.lizhistudio.app.core.UI;
+import top.lizhistudio.app.core.wrapper.UIWrapper;
 import top.lizhistudio.autolua.core.LuaContextFactory;
 import top.lizhistudio.autolua.core.RPCJavaInterfaceWrapper;
 import top.lizhistudio.autolua.core.Server;
 import top.lizhistudio.autolua.extend.Controller;
 import top.lizhistudio.autolua.rpc.ClientHandler;
 
-//set print method
 
 
 public class LuaContextFactoryImplement implements LuaContextFactory {
@@ -33,8 +33,11 @@ public class LuaContextFactoryImplement implements LuaContextFactory {
         JavaObjectWrapperFactoryImplement.Builder builder = new JavaObjectWrapperFactoryImplement.Builder();
         builder.registerInterfaceByAnnotation(Controller.class)
                 .registerThrowable()
-                .register(new JavaStructWrapper(WindowManager.LayoutParams.class))
-                .register(new RPCJavaInterfaceWrapper(UI.class))
+                .registerStruct(PixelFormat.class)
+                .registerStruct(WindowManager.LayoutParams.class)
+                .registerStruct(Gravity.class)
+                .register(new JavaStructWrapper( UI.LayoutParams.class))
+                .registerLuaAdapter(UIWrapper.class)
                 .register(new RPCJavaInterfaceWrapper(FloatView.class))
                 .register(new RPCJavaInterfaceWrapper(DebugListener.class));
         javaObjectWrapperFactory = builder.build();
@@ -54,8 +57,10 @@ public class LuaContextFactoryImplement implements LuaContextFactory {
     @Override
     public LuaContext newInstance() {
         LuaContextImplement luaContextImplement = new LuaContextImplement(javaObjectWrapperFactory);
-        luaContextImplement.setGlobal(UI.SERVICE_NAME,UI.class,new UIProxy(getService(UI.SERVICE_NAME,UI.class)));
-        luaContextImplement.setGlobal("LayoutParams", WindowManager.LayoutParams.class);
+        luaContextImplement.setGlobal(UI.SERVICE_NAME,UIWrapper.class,new UIWrapper(Server.getInstance().getClientHandler()));
+        luaContextImplement.setGlobal("PixelFormat",PixelFormat.class);
+        luaContextImplement.setGlobal("LayoutParamsFlags",WindowManager.LayoutParams.class);
+        luaContextImplement.setGlobal("Gravity",Gravity.class);
         luaContextImplement.getGlobal("package");
         luaContextImplement.getField(-1,"loaded");
         luaContextImplement.push(Controller.getDefault());
@@ -104,50 +109,6 @@ public class LuaContextFactoryImplement implements LuaContextFactory {
             int currentLine = debugInfo.getCurrentLine();
             listener.onLog(message,path,currentLine);
             return 0;
-        }
-    }
-
-    private static class UIProxy implements UI {
-        private final UI ui;
-        UIProxy(UI ui )
-        {
-            this.ui = ui;
-        }
-        @Override
-        public FloatView newFloatView(String name, String uri, byte[] layoutParams) {
-
-            return ui.newFloatView(name, uri, layoutParams);
-        }
-
-        @Override
-        public FloatView newFloatView(String name, String uri, WindowManager.LayoutParams layoutParams) {
-            Parcel parcel = Parcel.obtain();
-            try{
-                parcel.writeValue(layoutParams);
-                return newFloatView(name, uri, parcel.marshall());
-            }finally {
-                parcel.recycle();
-            }
-        }
-
-        @Override
-        public Object takeSignal() throws InterruptedException {
-            return ui.takeSignal();
-        }
-
-        @Override
-        public FloatView getFloatView(String name) {
-            return ui.getFloatView(name);
-        }
-
-        @Override
-        public void showMessage(String message, int time) {
-            ui.showMessage(message, time);
-        }
-
-        @Override
-        public void putSignal(Object message) throws InterruptedException {
-            ui.putSignal(message);
         }
     }
 }

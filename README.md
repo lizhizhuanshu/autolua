@@ -6,7 +6,9 @@
 [API文档](docs/api/README.md)  
 [SDK接入](docs/sdk_switch.md)  
 [自动补全，代码提示](docs/codeHint/README.md)
-
+## 示例
+[sample](sample)文件夹下是一些简单的例子程序，可以自行选择一些例子下载到电脑上调试运行  
+同时欢迎任何人提交自己的示例代码
 ## 参考项目
 [MLN](https://github.com/lizhizhuanshu/MLN)当前项目的UI相关都是使用的此框架  
 [LuaJava](https://github.com/jasonsantos/luajava)  

@@ -8,6 +8,7 @@ UI= {}
 ---@param name string 悬浮窗口得名字，每个悬浮窗口名字必须不同
 ---@param uri string  悬浮窗口加载脚本得uri
 ---@param layoutParams LayoutParams 悬浮窗口得布局参数,可以为 nil
+---@return FloatView
 function UI:newFloatView(name,uri,layoutParams)
     
 end

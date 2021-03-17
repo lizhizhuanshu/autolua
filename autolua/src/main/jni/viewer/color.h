@@ -116,6 +116,14 @@ public:
 };
 
 
+
+static int compareColor(const unsigned char* color, const unsigned char* color1, Color colorShift)
+{
+    return compareColor(color,color1,(unsigned  char*)&colorShift);
+}
+
+
+
 class StringViewColor
 {
     std::string_view mData;

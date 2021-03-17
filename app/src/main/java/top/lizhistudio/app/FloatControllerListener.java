@@ -3,6 +3,9 @@ package top.lizhistudio.app;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.immomo.mls.MLSEngine;
+import com.immomo.mls.global.LVConfigBuilder;
+
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
@@ -28,12 +31,18 @@ public class FloatControllerListener implements FloatControllerView.OnClickListe
             luaInterpreter.interrupt();
         }else if (state == FloatControllerView.STOPPED_STATE)
         {
-            String path = ProjectManagerImplement.getInstance().getProjectPath(projectName);
-            if (path == null)
+            String projectPath = ProjectManagerImplement.getInstance().getProjectPath(projectName);
+            if (projectPath == null)
                 return;
+            MLSEngine.setLVConfig(new LVConfigBuilder(App.getApp())
+                    .setRootDir(projectPath)
+                    .setImageDir(projectPath+"/image")
+                    .setCacheDir(App.getApp().getCacheDir().getAbsolutePath())
+                    .setGlobalResourceDir(projectPath+"/resource").build());
             luaInterpreter.reset();
-            luaInterpreter.setLoadScriptPath(path);
-            luaInterpreter.executeFile(path + "/main.lua", new Callback() {
+            luaInterpreter.setLoadScriptPath(projectPath);
+            floatControllerView.setState(FloatControllerView.EXECUTEING_STATE);
+            luaInterpreter.executeFile(projectPath + "/main.lua", new Callback() {
                 @Override
                 public void onCompleted(Object result) {
                     floatControllerView.setState(FloatControllerView.STOPPED_STATE);

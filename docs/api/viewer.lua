@@ -16,10 +16,10 @@
 ---保存有二进制颜色数据的类型
 ---@class DisplayBuffer
 
-
-local M = {}
 ---这是一组可以实现找图找色的函数
-Viewer = M
+local M = {}
+
+
 
 
 

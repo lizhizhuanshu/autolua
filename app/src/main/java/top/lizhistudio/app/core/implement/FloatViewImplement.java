@@ -1,7 +1,6 @@
 package top.lizhistudio.app.core.implement;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
@@ -10,9 +9,10 @@ import com.immomo.mls.MLSInstance;
 import com.immomo.mls.utils.MainThreadExecutor;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import top.lizhistudio.app.core.FloatView;
 
-public class FloatViewImplement implements FloatView {
+import top.lizhistudio.autolua.core.UserInterface;
+
+public class FloatViewImplement implements UserInterface.FloatView {
     private final static int DESTROYED = 0;
     private final static int CONCEAL = 1;
     private final static int SHOW = 2;

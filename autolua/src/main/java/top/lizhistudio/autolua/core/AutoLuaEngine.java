@@ -81,18 +81,19 @@ public class AutoLuaEngine {
         }
     }
 
-    public RPCService register(String name,Class<?> aInterface,Object service)
+    public void setUserInterface(UserInterface userInterface)
     {
-        if (!aInterface.isInterface())
-        {
-            throw new RuntimeException("register aInterface need a interface");
-        }
-        return rpcServiceCache.put(name,new RPCService(aInterface,service));
+        rpcServiceCache.put(UserInterface.LUA_CLASS_NAME,
+                new RPCService(UserInterface.class,userInterface));
     }
 
-    public RPCService unRegister(String name)
+    public LuaInterpreter.PrintListener setPrintListener(LuaInterpreter.PrintListener printListener)
     {
-        return rpcServiceCache.remove(name);
+        RPCService rpcService = rpcServiceCache.put(Server.LISTENER_SERVICE_NAME,new RPCService(LuaInterpreter.PrintListener.class,
+                printListener));
+        if (rpcService == null)
+            return null;
+        return (LuaInterpreter.PrintListener)rpcService.getService();
     }
 
 
@@ -431,7 +432,6 @@ public class AutoLuaEngine {
         private String localAddress = null;
         private int port = -1;
         private String packagePath = null;
-        private Class<?> luaInterpreterFactory = null;
 
         private StartConfig(){}
 
@@ -509,11 +509,6 @@ public class AutoLuaEngine {
             return this;
         }
 
-        public StartConfig setLuaInterpreterFactory(Class<? extends LuaInterpreterFactory> aClass)
-        {
-            this.luaInterpreterFactory = aClass;
-            return this;
-        }
 
 
         public static String getRandomString(int length){
@@ -610,9 +605,6 @@ public class AutoLuaEngine {
                 appendArg(command,"-l",localAddress);
             }
             appendArg(command,"-v",password);
-            if (luaInterpreterFactory == null)
-                throw new RuntimeException("need set LuaContextFactory");
-            appendArg(command,"-f","'"+ luaInterpreterFactory.getName()+"'");
             command.append('\n');
             return command.toString();
         }

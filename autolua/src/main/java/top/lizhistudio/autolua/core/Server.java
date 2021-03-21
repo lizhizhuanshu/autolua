@@ -11,7 +11,6 @@ import org.apache.commons.cli.Options;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import top.lizhistudio.autolua.extend.Screen;
 import top.lizhistudio.autolua.rpc.ClientHandler;
 import top.lizhistudio.autolua.rpc.ServiceHandler;
 import top.lizhistudio.autolua.rpc.message.Request;
@@ -24,6 +23,7 @@ import top.lizhistudio.autolua.rpc.transport.Transport;
 public class Server {
     private static final String TAG = "Server";
     public static final String AUTO_LUA_SERVICE_NAME = "AutoLua";
+    public static final String LISTENER_SERVICE_NAME = "PrintListener";
     private final Transport transport;
     private final ClientHandler clientHandler;
     private final ServiceHandler serviceHandler;
@@ -62,14 +62,6 @@ public class Server {
         }
     }
 
-    private static LuaInterpreterFactory createFactory(String className)
-            throws ClassNotFoundException,
-            IllegalAccessException,
-            InstantiationException
-    {
-        Class<?> aClass = Class.forName(className);
-        return (LuaInterpreterFactory) aClass.newInstance();
-    }
 
 
     private static class PasswordProcurator implements ServerTransport.Procurator
@@ -106,7 +98,6 @@ public class Server {
         options.addOption("l","local-server",true,"local server feature");
         options.addOption("h","help",false,"print options");
         options.addOption("v","verify",true,"verify password");
-        options.addOption("f","factory",true,"lua context factory class name");
         try{
             CommandLine commandLine = new DefaultParser().parse(options,args);
             if (commandLine.hasOption('h'))
@@ -124,8 +115,11 @@ public class Server {
                         new PasswordProcurator( commandLine.getOptionValue('v')));
                 ClientHandler clientHandler = new ClientHandler(transport);
                 ServiceHandler serviceHandler = new ServiceHandler(transport);
-                LuaInterpreterFactory  luaInterpreterFactory = createFactory(commandLine.getOptionValue('f'));
-                LuaInterpreter luaInterpreter = luaInterpreterFactory.newInstance();
+                UserInterface userInterface = clientHandler.getService(UserInterface.LUA_CLASS_NAME,UserInterface.class);
+                LuaInterpreter.PrintListener printListener = clientHandler.getService(
+                        LISTENER_SERVICE_NAME , LuaInterpreter.PrintListener.class);
+                LuaInterpreter luaInterpreter = new LuaInterpreterImplement(userInterface,
+                        printListener);
                 serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
                 self = new Server(transport,clientHandler,serviceHandler);
                 System.out.println(1);
@@ -135,6 +129,7 @@ public class Server {
         }catch (Throwable e)
         {
             e.printStackTrace(System.err);
+            e.printStackTrace(System.out);
             System.out.println(0);
         }
     }

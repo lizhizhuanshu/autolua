@@ -60,4 +60,21 @@ public class LuaJava {
     static native boolean getStack(long nativeLua,int level,DebugInfo debugInfo);
     static native boolean getInfo(long nativeLua,String what,DebugInfo debugInfo);
 
+
+
+    static native long newDebugInfo();
+    static native void releaseDebugInfo(long nativePrint);
+    static native String getDebugInfoName(long nativePrint);
+    static native String getDebugInfoNameWhat(long nativePrint);
+    static native String getDebugInfoSource(long nativePrint);
+    static native String getDebugInfoShortSource(long nativePrint);
+    static native String getDebugInfoWhat(long nativePrint);
+    static native boolean isDebugInfoTailCall(long nativePrint);
+    static native boolean isDebugInfoVarArg(long nativePrint);
+    static native int getDebugInfoCurrentLine(long nativePrint);
+    static native int getDebugInfoLastLineDefined(long nativePrint);
+    static native int getDebugInfoLineDefined(long nativePrint);
+    static native int getDebugInfoParamsSum(long nativePrint);
+    static native int getDebugInfoUpValueSum(long nativePrint);
+
 }

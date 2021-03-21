@@ -5,23 +5,27 @@ import android.service.controls.Control;
 import android.view.Gravity;
 import android.view.WindowManager;
 
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import top.lizhistudio.androidlua.DebugInfo;
 import top.lizhistudio.androidlua.JavaObjectWrapperFactory;
 import top.lizhistudio.androidlua.JavaObjectWrapperFactoryImplement;
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.LuaContextImplement;
 import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
+import top.lizhistudio.autolua.core.wrapper.UserInterfaceWrapper;
 import top.lizhistudio.autolua.extend.Controller;
 import top.lizhistudio.autolua.rpc.Callback;
+import top.lizhistudio.autolua.rpc.ClientHandler;
 
 public class LuaInterpreterImplement implements LuaInterpreter {
     private LuaContext context;
     private final AtomicBoolean isRunning;
     private final LuaHandler errorHandler;
     private final LuaHandler printHandler;
-
+    private final UserInterfaceWrapper userInterfaceWrapper;
     private volatile Thread nowThread;
 
 
@@ -33,6 +37,7 @@ public class LuaInterpreterImplement implements LuaInterpreter {
                 .registerStruct(PixelFormat.class)
                 .registerStruct(WindowManager.LayoutParams.class)
                 .registerStruct(Gravity.class)
+                .register(new RPCJavaInterfaceWrapper(UserInterface.FloatView.class))
                 .registerLuaAdapter(UserInterfaceWrapper.class)
                 .registerInterface(UserInterface.FloatView.class)
                 .registerLuaAdapter(Controller.class);
@@ -61,46 +66,26 @@ public class LuaInterpreterImplement implements LuaInterpreter {
         }
     }
 
-    public LuaInterpreterImplement()
+    public LuaInterpreterImplement(UserInterface userInterface,
+                                   PrintListener printListener)
     {
         isRunning = new AtomicBoolean(false);
         this.userInterfaceWrapper = new UserInterfaceWrapper();
-        this.errorHandler = new ErrorHandler(userInterfaceWrapper);
-        this.printHandler = new PrintHandler(userInterfaceWrapper);
+        userInterfaceWrapper.setUI(userInterface);
+        this.printHandler = new PrintHandler(printListener);
+        this.errorHandler = new ErrorHandler(printListener);
     }
-
-    private void checkCallResult(LuaContext context, int r)
-    {
-        if (r != LuaContext.LUA_OK)
-        {
-            if (context.type(-1) == LuaContext.LUA_TSTRING)
-            {
-                String message = context.toString(-1);
-                context.pop(1);
-                throw new LuaInvokeError(message);
-            }else
-            {
-                context.pop(1);
-                throw new LuaInvokeError("unknown error");
-            }
-        }
-    }
-
 
     private Object[] executeWrap(byte[] code,String chunkName)
     {
         nowThread = Thread.currentThread();
-        if (errorHandler != null)
-            return checkLuaContext().execute(code,chunkName,errorHandler);
-        return checkLuaContext().execute(code,chunkName,0);
+        return checkLuaContext().execute(code,chunkName,errorHandler);
     }
 
     private Object[] executeFileWrap(String path)
     {
         nowThread = Thread.currentThread();
-        if (errorHandler != null)
-            return checkLuaContext().executeFile(path,errorHandler);
-        return checkLuaContext().executeFile(path,0);
+        return checkLuaContext().executeFile(path,errorHandler);
     }
 
 
@@ -237,5 +222,63 @@ public class LuaInterpreterImplement implements LuaInterpreter {
                 thread.interrupt();
         }
     }
+
+
+    private static class ErrorHandler implements LuaHandler
+    {
+        private DebugInfo debugInfo = new DebugInfo();
+        private PrintListener printListener;
+        ErrorHandler(PrintListener printListener)
+        {
+            this.printListener = printListener;
+        }
+        @Override
+        public int onExecute(LuaContext context) throws Throwable {
+            context.getStack(1,debugInfo);
+            context.getInfo("Sl",debugInfo);
+            String path = debugInfo.getSource();
+            int currentLine = debugInfo.getCurrentLine();
+            String message = context.coerceToString(-1);
+            printListener.onErrorPrint(path,currentLine,message);
+            return 1;
+        }
+    }
+
+    private static class PrintHandler implements  LuaHandler
+    {
+        private DebugInfo debugInfo = new DebugInfo();
+        private PrintListener printListener;
+        PrintHandler(PrintListener printListener)
+        {
+            this.printListener = printListener;
+        }
+
+        private String getMessage(LuaContext context)
+        {
+            StringBuilder builder = new StringBuilder();
+            for (int i=1;i<=context.getTop();i++)
+            {
+                builder.append(context.coerceToString(i));
+                if (i!=context.getTop())
+                {
+                    builder.append("    ");
+                }
+            }
+            return builder.toString();
+        }
+
+        @Override
+        public int onExecute(LuaContext luaContext) throws Throwable {
+            ClientHandler clientHandler = Server.getInstance().getClientHandler();
+            String message = getMessage(luaContext);
+            luaContext.getStack(1,debugInfo);
+            luaContext.getInfo("Sl",debugInfo);
+            String path = debugInfo.getSource();
+            int currentLine = debugInfo.getCurrentLine();
+            printListener.onPrint(path,currentLine,message);
+            return 0;
+        }
+    }
+
 
 }

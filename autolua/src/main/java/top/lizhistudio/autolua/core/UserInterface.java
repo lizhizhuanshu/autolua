@@ -5,15 +5,11 @@ import android.view.WindowManager;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 
+import top.lizhistudio.autolua.annotation.RPCInterface;
 import top.lizhistudio.autolua.annotation.RPCMethod;
 
 public interface UserInterface {
     String LUA_CLASS_NAME = "UI";
-    @RPCMethod
-    void onPrint(String source, int line, String message);
-    @RPCMethod
-    void onError(String source,int line,String message);
-
     @RPCMethod
     void showMessage(String message,int time);
     @RPCMethod
@@ -24,6 +20,7 @@ public interface UserInterface {
     FloatView getFloatView(String name);
     void putSignal(Object message) throws InterruptedException;
 
+    @RPCInterface
     interface FloatView
     {
         @RPCMethod

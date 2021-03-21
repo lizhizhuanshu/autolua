@@ -36,7 +36,7 @@ public class UserdataUI {
                 signal[i] = null;
         }
         try{
-            UIImplement.getInstance().putSignal(signal);
+            UserInterfaceImplement.getDefault().putSignal(signal);
         }catch (InterruptedException e)
         {
 

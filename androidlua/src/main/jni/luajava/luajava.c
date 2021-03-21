@@ -625,17 +625,17 @@ Java_top_lizhistudio_androidlua_LuaJava_getStack(JNIEnv *env, jclass clazz, jlon
 }
 
 JNIEXPORT jlong JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_newDebugInfo(JNIEnv *env, jclass clazz) {
+Java_top_lizhistudio_androidlua_LuaJava_newDebugInfo(JNIEnv *env, jclass clazz) {
     return (jlong)malloc(sizeof(lua_Debug));
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_release(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_releaseDebugInfo(JNIEnv *env, jclass clazz, jlong native_print) {
     free((void*)native_print);
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getName(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoName(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->name == NULL)
         return NULL;
@@ -643,8 +643,8 @@ Java_top_lizhistudio_androidlua_DebugInfo_getName(JNIEnv *env, jclass clazz, jlo
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getNameWhat(JNIEnv *env, jclass clazz,
-                                                      jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoNameWhat(JNIEnv *env, jclass clazz,
+                                                             jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->namewhat == NULL)
         return NULL;
@@ -652,7 +652,7 @@ Java_top_lizhistudio_androidlua_DebugInfo_getNameWhat(JNIEnv *env, jclass clazz,
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getSource(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoSource(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->source == NULL)
         return NULL;
@@ -660,14 +660,14 @@ Java_top_lizhistudio_androidlua_DebugInfo_getSource(JNIEnv *env, jclass clazz, j
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getShortSource(JNIEnv *env, jclass clazz,
-                                                         jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoShortSource(JNIEnv *env, jclass clazz,
+                                                                jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return (*env)->NewStringUTF(env,luaDebug->short_src);
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getWhat(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoWhat(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->what == NULL)
         return NULL;
@@ -675,49 +675,49 @@ Java_top_lizhistudio_androidlua_DebugInfo_getWhat(JNIEnv *env, jclass clazz, jlo
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getCurrentLine(JNIEnv *env, jclass clazz,
-                                                         jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoCurrentLine(JNIEnv *env, jclass clazz,
+                                                                jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->currentline;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getLastLineDefined(JNIEnv *env, jclass clazz,
-                                                             jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoLastLineDefined(JNIEnv *env, jclass clazz,
+                                                                    jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->lastlinedefined;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getLineDefined(JNIEnv *env, jclass clazz,
-                                                         jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoLineDefined(JNIEnv *env, jclass clazz,
+                                                                jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->linedefined;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getParamsSum(JNIEnv *env, jclass clazz,
-                                                       jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoParamsSum(JNIEnv *env, jclass clazz,
+                                                              jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->nparams;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_getUpValueSum(JNIEnv *env, jclass clazz,
-                                                        jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoUpValueSum(JNIEnv *env, jclass clazz,
+                                                               jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->nups;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_isTailCall(JNIEnv *env, jclass clazz,
-                                                     jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_isDebugInfoTailCall(JNIEnv *env, jclass clazz,
+                                                            jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->istailcall;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_DebugInfo_isVarArg(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaJava_isDebugInfoVarArg(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->isvararg;
 }

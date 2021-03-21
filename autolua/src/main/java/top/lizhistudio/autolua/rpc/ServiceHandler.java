@@ -1,13 +1,9 @@
 package top.lizhistudio.autolua.rpc;
 
-import android.net.Uri;
-import android.util.Log;
-import android.view.WindowManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import top.lizhistudio.androidlua.Util;
 import top.lizhistudio.autolua.annotation.RPCInterface;
 import top.lizhistudio.autolua.annotation.RPCMethod;
 import top.lizhistudio.autolua.exception.RemoteException;
@@ -79,13 +75,6 @@ public class ServiceHandler {
 
     public void onReceive(Request request)
     {
-        if ( "newFloatView".equals(request.methodName))
-        {
-            for(Object o:(Object[])request.params)
-            {
-                System.err.println(o.toString());
-            }
-        }
         Object result;
         Class<?> returnClass = null;
         try {

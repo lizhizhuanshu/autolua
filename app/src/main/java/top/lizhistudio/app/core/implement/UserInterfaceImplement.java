@@ -3,6 +3,7 @@ package top.lizhistudio.app.core.implement;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
+import android.service.controls.Control;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -17,19 +18,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import top.lizhistudio.androidlua.Util;
-import top.lizhistudio.app.core.FloatView;
-import top.lizhistudio.app.core.UI;
+import top.lizhistudio.autolua.core.UserInterface;
 
-public class UIImplement implements UI {
+public class UserInterfaceImplement implements UserInterface {
     private static final String TAG = "UI";
     private Context context;
     private final LinkedBlockingQueue<Object> blockingQueue;
     private final ConcurrentHashMap<String, WeakReference<FloatView>> floatViewCache;
-    private UIImplement(){
+    UserInterfaceImplement(){
         blockingQueue= new LinkedBlockingQueue<>();
         floatViewCache = new ConcurrentHashMap<>();
     }
+
 
     private static void log(String message)
     {
@@ -111,10 +111,10 @@ public class UIImplement implements UI {
 
     private static class Self{
         @SuppressLint("StaticFieldLeak")
-        private static final  UIImplement  instance = new UIImplement();
+        private static final UserInterfaceImplement instance = new UserInterfaceImplement();
     }
 
-    public static UIImplement getInstance(){
+    public static UserInterfaceImplement getDefault(){
         return Self.instance;
     }
 
@@ -122,5 +122,7 @@ public class UIImplement implements UI {
     {
         this.context = context.getApplicationContext();
     }
+
+
 
 }

@@ -6,27 +6,20 @@ import android.util.Log;
 
 import com.immomo.mls.MLSBuilder;
 import com.immomo.mls.MLSEngine;
-import com.immomo.mls.global.LVConfig;
-import com.immomo.mls.global.LVConfigBuilder;
 
-
-import android.os.Environment;
 
 import com.immomo.mls.fun.lt.SIApplication;
-import com.immomo.mls.global.LuaViewConfig;
 
 import org.luaj.vm2.Globals;
 
-import top.lizhistudio.app.core.UI;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
-import top.lizhistudio.app.core.implement.UIImplement;
+import top.lizhistudio.app.core.implement.UserInterfaceImplement;
 import top.lizhistudio.app.core.implement.UserdataUI;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
-import top.lizhistudio.app.core.implement.LuaInterpreterFactoryImplement;
 import top.lizhistudio.app.provider.GlideImageProvider;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
-import top.lizhistudio.autolua.proto.Message;
+import top.lizhistudio.autolua.core.BasePrintListener;
 
 
 public class App extends Application {
@@ -51,16 +44,10 @@ public class App extends Application {
         autoLuaEngine = new AutoLuaEngine();
         autoLuaEngine.getStartConfig()
                 .setProcessPrint(true)
-                .setPackagePath(this.getPackageCodePath())
-                .setLuaInterpreterFactory(LuaInterpreterFactoryImplement.class);
-        autoLuaEngine.register(UI.SERVICE_NAME,UI.class,UIImplement.getInstance());
-
+                .setPackagePath(this.getPackageCodePath());
         autoLuaEngine.attach(new EngineObserver());
-    }
-
-    private String getScriptPath()
-    {
-        return this.getFilesDir().getPath()+"/"+"projects";
+        autoLuaEngine.setPrintListener(new BasePrintListener());
+        autoLuaEngine.setUserInterface(UserInterfaceImplement.getDefault());
     }
 
 
@@ -87,7 +74,7 @@ public class App extends Application {
         initializeMLSEngine();
         initializeAutoLuaEngine();
         floatControllerView = new FloatControllerViewImplement(this,40);
-        UIImplement.getInstance().initialize(this);
+        UserInterfaceImplement.getDefault().initialize(this);
         ProjectManagerImplement.getInstance().initialize(this);
         log("onCreate: " + Globals.isInit() + " " + Globals.isIs32bit());
     }

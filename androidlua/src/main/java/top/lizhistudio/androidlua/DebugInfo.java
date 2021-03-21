@@ -4,7 +4,7 @@ public class DebugInfo {
     private long nativePrint;
     public DebugInfo()
     {
-        nativePrint = newDebugInfo();
+        nativePrint = LuaJava.newDebugInfo();
     }
 
     @Override
@@ -14,74 +14,59 @@ public class DebugInfo {
         {
             if (nativePrint >0)
             {
-                release(nativePrint);
+                LuaJava.releaseDebugInfo(nativePrint);
                 nativePrint = 0;
             }
         }
     }
 
-    private static native long newDebugInfo();
-    private static native void release(long nativePrint);
-    private static native String getName(long nativePrint);
-    private static native String getNameWhat(long nativePrint);
-    private static native String getSource(long nativePrint);
-    private static native String getShortSource(long nativePrint);
-    private static native String getWhat(long nativePrint);
-    private static native boolean isTailCall(long nativePrint);
-    private static native boolean isVarArg(long nativePrint);
-    private static native int getCurrentLine(long nativePrint);
-    private static native int getLastLineDefined(long nativePrint);
-    private static native int getLineDefined(long nativePrint);
-    private static native int getParamsSum(long nativePrint);
-    private static native int getUpValueSum(long nativePrint);
-
 
     public boolean isTailCall() {
-        return isTailCall(nativePrint);
+        return LuaJava.isDebugInfoTailCall(nativePrint);
     }
 
     public boolean isVarArg() {
-        return isVarArg(nativePrint);
+        return LuaJava.isDebugInfoVarArg(nativePrint);
     }
 
     public int getCurrentLine() {
-        return getCurrentLine(nativePrint);
+        return LuaJava.getDebugInfoCurrentLine(nativePrint);
     }
 
     public int getLastLineDefined() {
-        return getLastLineDefined(nativePrint);
+        return LuaJava.getDebugInfoLastLineDefined(nativePrint);
     }
 
     public int getLineDefined() {
-        return getLineDefined(nativePrint);
+        return LuaJava.getDebugInfoLineDefined(nativePrint);
     }
 
     public int getParamsSum() {
-        return getParamsSum(nativePrint);
+        return LuaJava.getDebugInfoParamsSum(nativePrint);
     }
 
     public int getUpValueSum() {
-        return getUpValueSum(nativePrint);
+        return LuaJava.getDebugInfoUpValueSum(nativePrint);
     }
 
     public String getNameWhat() {
-        return getNameWhat(nativePrint);
+        return LuaJava.getDebugInfoNameWhat(nativePrint);
     }
 
     public String getShortSource() {
-        return getShortSource(nativePrint);
+        return LuaJava.getDebugInfoShortSource(nativePrint);
     }
 
     public String getSource() {
-        return getSource(nativePrint);
+        return LuaJava.getDebugInfoSource(nativePrint);
     }
 
     public String getWhat() {
-        return getWhat(nativePrint);
+        return LuaJava.getDebugInfoWhat(nativePrint);
     }
 
     public String getName(){
-        return getName(nativePrint);
+        return LuaJava.getDebugInfoName(nativePrint);
     }
 }
 

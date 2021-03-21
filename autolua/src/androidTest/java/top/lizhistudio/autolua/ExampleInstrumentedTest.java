@@ -9,12 +9,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import top.lizhistudio.androidlua.JavaObjectWrapperFactoryImplement;
-import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.androidlua.LuaContextImplement;
-import top.lizhistudio.autolua.core.AutoLuaEngine;
-import top.lizhistudio.autolua.core.LuaContextFactory;
-import top.lizhistudio.autolua.core.Server;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,15 +27,6 @@ public class ExampleInstrumentedTest {
         assertEquals("top.lizhistudio.autolua.test", appContext.getPackageName());
     }
 
-    public static class MyLuaContextFactory implements LuaContextFactory
-    {
-        @Override
-        public LuaContext newInstance() {
-            JavaObjectWrapperFactoryImplement.Builder builder = new JavaObjectWrapperFactoryImplement.Builder();
-            builder.registerThrowable();
-            return new LuaContextImplement(builder.build());
-        }
-    }
 
     @Test
     public void testAutoLuaContext() throws Throwable

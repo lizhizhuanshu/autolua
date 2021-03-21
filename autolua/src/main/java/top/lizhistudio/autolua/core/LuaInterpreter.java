@@ -1,6 +1,5 @@
 package top.lizhistudio.autolua.core;
 
-import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.autolua.annotation.RPCMethod;
 import top.lizhistudio.autolua.rpc.Callback;
 
@@ -23,4 +22,12 @@ public interface LuaInterpreter {
     boolean setLoadScriptPath(String path);
     @RPCMethod
     boolean setLoadLibraryPath(String path);
+
+    interface PrintListener
+    {
+        @RPCMethod
+        void onPrint(String source,int line,String message);
+        @RPCMethod
+        void onErrorPrint(String source,int line,String message);
+    }
 }

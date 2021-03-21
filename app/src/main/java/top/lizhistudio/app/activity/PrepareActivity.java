@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import top.lizhistudio.app.App;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 
 public class PrepareActivity extends PermissionActivity {
@@ -19,7 +20,7 @@ public class PrepareActivity extends PermissionActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        AutoLuaEngine.getInstance().detach(engineObserver);
+        App.getApp().getAutoLuaEngine().detach(engineObserver);
     }
 
     private static class EngineObserver implements AutoLuaEngine.Observer
@@ -48,9 +49,9 @@ public class PrepareActivity extends PermissionActivity {
         if (isCompleted)
             return;
         isCompleted = true;
-        if (AutoLuaEngine.getInstance().getState() == AutoLuaEngine.STATE.RUNNING)
+        if (App.getApp().getAutoLuaEngine().getState() == AutoLuaEngine.STATE.RUNNING)
             startActivity(new Intent(this, MainActivity.class));
-        AutoLuaEngine.getInstance().attach(engineObserver);
-        AutoLuaEngine.getInstance().start();
+        App.getApp().getAutoLuaEngine().attach(engineObserver);
+        App.getApp().getAutoLuaEngine().start();
     }
 }

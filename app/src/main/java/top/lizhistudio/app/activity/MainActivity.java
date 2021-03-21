@@ -12,6 +12,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import top.lizhistudio.app.App;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.DebuggerServer;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         long time = SystemClock.uptimeMillis();
         if(time - lastBackPressedTime < 3000)
         {
-            AutoLuaEngine.getInstance().sendStop();
+            App.getApp().getAutoLuaEngine().sendStop();
             DebuggerServer.getInstance().stop();
             finish();
         }else

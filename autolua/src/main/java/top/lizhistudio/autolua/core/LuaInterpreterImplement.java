@@ -1,36 +1,72 @@
 package top.lizhistudio.autolua.core;
 
+import android.graphics.PixelFormat;
+import android.service.controls.Control;
+import android.view.Gravity;
+import android.view.WindowManager;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import top.lizhistudio.androidlua.JavaObjectWrapperFactory;
+import top.lizhistudio.androidlua.JavaObjectWrapperFactoryImplement;
 import top.lizhistudio.androidlua.LuaContext;
+import top.lizhistudio.androidlua.LuaContextImplement;
 import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
+import top.lizhistudio.autolua.extend.Controller;
 import top.lizhistudio.autolua.rpc.Callback;
 
 public class LuaInterpreterImplement implements LuaInterpreter {
     private LuaContext context;
     private final AtomicBoolean isRunning;
-    private final LuaContextFactory luaContextFactory;
     private final LuaHandler errorHandler;
+    private final LuaHandler printHandler;
 
     private volatile Thread nowThread;
 
+
+    private LuaContext newLuaContext()
+    {
+
+        JavaObjectWrapperFactoryImplement.Builder builder = new JavaObjectWrapperFactoryImplement.Builder();
+        builder.registerThrowable()
+                .registerStruct(PixelFormat.class)
+                .registerStruct(WindowManager.LayoutParams.class)
+                .registerStruct(Gravity.class)
+                .registerLuaAdapter(UserInterfaceWrapper.class)
+                .registerInterface(UserInterface.FloatView.class)
+                .registerLuaAdapter(Controller.class);
+        JavaObjectWrapperFactory javaObjectWrapperFactory = builder.build();
+        LuaContextImplement luaContext = new LuaContextImplement(javaObjectWrapperFactory);
+        luaContext.setGlobal(UserInterface.LUA_CLASS_NAME,UserInterfaceWrapper.class,userInterfaceWrapper);
+        luaContext.setGlobal("PixelFormat", PixelFormat.class);
+        luaContext.setGlobal("LayoutParamsFlags", WindowManager.LayoutParams.class);
+        luaContext.setGlobal("Gravity", Gravity.class);
+        luaContext.getGlobal("package");
+        luaContext.getField(-1,"loaded");
+        luaContext.push(Controller.getDefault());
+        luaContext.setField(-2,"controller");
+        luaContext.pop(2);
+        luaContext.setGlobal("print",printHandler);
+        return luaContext;
+    }
 
     private LuaContext checkLuaContext()
     {
         synchronized (isRunning)
         {
             if (context == null)
-                context = luaContextFactory.newInstance();
+                context = newLuaContext();
             return context;
         }
     }
 
-    public LuaInterpreterImplement(LuaContextFactory luaContextFactory,LuaHandler errorHandler)
+    public LuaInterpreterImplement()
     {
-        this.luaContextFactory = luaContextFactory;
         isRunning = new AtomicBoolean(false);
-        this.errorHandler = errorHandler;
+        this.userInterfaceWrapper = new UserInterfaceWrapper();
+        this.errorHandler = new ErrorHandler(userInterfaceWrapper);
+        this.printHandler = new PrintHandler(userInterfaceWrapper);
     }
 
     private void checkCallResult(LuaContext context, int r)
@@ -186,7 +222,7 @@ public class LuaInterpreterImplement implements LuaInterpreter {
         {
             if (context != null)
                 context.destroy();
-            context = luaContextFactory.newInstance();
+            context = newLuaContext();
             isRunning.set(false);
         }else
             throw new LuaInvokeError("lua is running");

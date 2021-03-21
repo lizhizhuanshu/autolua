@@ -21,7 +21,7 @@ public class FloatControllerListener implements FloatControllerView.OnClickListe
 
     @Override
     public void onClick(FloatControllerView floatControllerView, int state) {
-        LuaInterpreter luaInterpreter = AutoLuaEngine.getInstance().getInterrupt();
+        LuaInterpreter luaInterpreter = App.getApp().getAutoLuaEngine().getInterrupt();
         if (luaInterpreter == null)
         {
             Toast.makeText(App.getApp(),"错误的脚本执行环境，无法执行脚本",Toast.LENGTH_LONG)

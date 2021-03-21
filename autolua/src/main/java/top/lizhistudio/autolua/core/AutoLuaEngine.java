@@ -47,9 +47,9 @@ public class AutoLuaEngine {
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
     private final ExecutorService executorService;
     private final RPCServiceCache rpcServiceCache;
-    private AutoLuaEngine()
+    public AutoLuaEngine()
     {
-        receiveThread = new HandlerThread("receive message thread");
+        receiveThread = new HandlerThread("receiver@"+hashCode());
         receiveThread.start();
         receiveHandler = new Handler(receiveThread.getLooper());
         executorService = Executors.newCachedThreadPool();
@@ -368,14 +368,8 @@ public class AutoLuaEngine {
         return null;
     }
 
-    private static class Stub{
-        private final static AutoLuaEngine autoLuaEngine = new AutoLuaEngine();
-    }
 
-    public static AutoLuaEngine getInstance()
-    {
-        return Stub.autoLuaEngine;
-    }
+
 
     public interface Observer
     {

@@ -145,7 +145,7 @@ public class DebugServiceImplement implements DebuggerService.Iface {
 
     @Override
     public boolean executeFile(String projectName, String path) throws TException {
-        LuaInterpreter interpreter = AutoLuaEngine.getInstance().getInterrupt();
+        LuaInterpreter interpreter = App.getApp().getAutoLuaEngine().getInterrupt();
         if (interpreter != null && !interpreter.isRunning())
         {
             String projectPath = projectManager.getProjectPath(projectName);
@@ -159,7 +159,7 @@ public class DebugServiceImplement implements DebuggerService.Iface {
 
                 DebugListener listener = newListener(projectPath);
                 //此处需要注意
-                AutoLuaEngine.getInstance().register(DebugListener.SERVICE_NAME,
+                App.getApp().getAutoLuaEngine().register(DebugListener.SERVICE_NAME,
                         DebugListener.class,
                         listener);
                 interpreter.reset();
@@ -169,7 +169,7 @@ public class DebugServiceImplement implements DebuggerService.Iface {
                     public void onCompleted(Object result) {
                         //Log.d(TAG,result.toString());
                         listener.onStop();
-                        AutoLuaEngine.getInstance().unRegister(DebugListener.SERVICE_NAME);
+                        App.getApp().getAutoLuaEngine().unRegister(DebugListener.SERVICE_NAME);
                     }
                     @Override
                     public void onError(Throwable throwable) {
@@ -178,7 +178,7 @@ public class DebugServiceImplement implements DebuggerService.Iface {
                         {
                             throwable.printStackTrace();
                         }
-                        AutoLuaEngine.getInstance().unRegister(DebugListener.SERVICE_NAME);
+                        App.getApp().getAutoLuaEngine().unRegister(DebugListener.SERVICE_NAME);
                     }
                 });
                 return true;
@@ -190,7 +190,7 @@ public class DebugServiceImplement implements DebuggerService.Iface {
     @Override
     public void interrupt() throws TException {
         //Log.d(TAG,"interrupt");
-        LuaInterpreter interpreter = AutoLuaEngine.getInstance().getInterrupt();
+        LuaInterpreter interpreter = App.getApp().getAutoLuaEngine().getInterrupt();
         if (interpreter != null && interpreter.isRunning())
             interpreter.interrupt();
     }

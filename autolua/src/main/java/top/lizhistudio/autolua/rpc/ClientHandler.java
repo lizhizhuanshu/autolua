@@ -68,7 +68,7 @@ public class ClientHandler {
         return (String[])sendAndGetResult(request);
     }
 
-    private boolean hasService(String name) throws InterruptedException
+    public boolean hasService(String name) throws InterruptedException
     {
         Request request = new Request();
         request.serviceID = name;
@@ -87,7 +87,7 @@ public class ClientHandler {
 
     public <T> T getService(String name,Class<T> serviceInterface) throws InterruptedException
     {
-        return hasService (name)?newService(name,serviceInterface):null;
+        return newService(name,serviceInterface);
     }
 
     private void releaseLocalRPCService(long serviceID)throws InterruptedException

@@ -26,11 +26,13 @@ import top.lizhistudio.app.core.implement.LuaInterpreterFactoryImplement;
 import top.lizhistudio.app.provider.GlideImageProvider;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
+import top.lizhistudio.autolua.proto.Message;
 
 
 public class App extends Application {
     private static App app;
     private FloatControllerView floatControllerView;
+    private AutoLuaEngine autoLuaEngine;
 
     private static class EngineObserver implements AutoLuaEngine.Observer
     {
@@ -46,7 +48,7 @@ public class App extends Application {
 
     private void initializeAutoLuaEngine()
     {
-        AutoLuaEngine autoLuaEngine = AutoLuaEngine.getInstance();
+        autoLuaEngine = new AutoLuaEngine();
         autoLuaEngine.getStartConfig()
                 .setProcessPrint(true)
                 .setPackagePath(this.getPackageCodePath())
@@ -113,7 +115,10 @@ public class App extends Application {
         return floatControllerView;
     }
 
-
+    public AutoLuaEngine getAutoLuaEngine()
+    {
+        return autoLuaEngine;
+    }
 }
 
 

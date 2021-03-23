@@ -1,1 +1,0 @@
-thrift --gen js:node,ts,es6,with_ns DebugService.thrift

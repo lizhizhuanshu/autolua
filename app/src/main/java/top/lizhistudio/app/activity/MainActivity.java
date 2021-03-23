@@ -14,8 +14,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.R;
-import top.lizhistudio.app.core.DebuggerServer;
-import top.lizhistudio.autolua.core.AutoLuaEngine;
+import top.lizhistudio.app.core.debugger.DebuggerServer;
 
 public class MainActivity extends AppCompatActivity {
     private long lastBackPressedTime = 0;

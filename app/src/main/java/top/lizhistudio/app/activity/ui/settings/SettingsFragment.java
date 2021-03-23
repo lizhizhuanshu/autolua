@@ -6,21 +6,17 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.immomo.mls.utils.MainThreadExecutor;
 
@@ -28,7 +24,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import top.lizhistudio.app.R;
-import top.lizhistudio.app.core.DebuggerServer;
+import top.lizhistudio.app.core.debugger.DebuggerServer;
 
 public class SettingsFragment extends Fragment {
     private final static String ERROR_IP = "未连接wifi";

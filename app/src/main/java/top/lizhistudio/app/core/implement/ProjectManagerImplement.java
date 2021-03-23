@@ -128,7 +128,7 @@ public class ProjectManagerImplement implements ProjectManager {
 
 
     @Override
-    public boolean createProject(String projectName, String feature,long version) {
+    public boolean createProject(String projectName, String feature,int version) {
         synchronized (projectInfoCache)
         {
             ProjectInfo info = projectInfoCache.get(projectName);
@@ -154,7 +154,7 @@ public class ProjectManagerImplement implements ProjectManager {
     }
 
     @Override
-    public boolean updateVersion(String projectName, long version) {
+    public boolean updateVersion(String projectName, int version) {
         ProjectInfo info = getInfo(projectName);
         if (info == null)
             return false;

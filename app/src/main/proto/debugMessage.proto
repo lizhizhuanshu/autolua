@@ -1,0 +1,36 @@
+syntax = "proto3";
+option java_package = "top.lizhistudio.autolua.debugger.proto";
+option java_outer_classname = "DebugMessage";
+
+enum METHOD{
+  UNKNOWN = 0;
+  GET_INFO=1;
+  CREATE_PROJECT=2;
+  CREATE_DIRECTORY=3;
+  UPDATE_VERSION=4;
+  UPDATE_FILE=5;
+  DELETE_FILE=6;
+  DELETE_DIRECTORY=7;
+  DELETE_PROJECT=8;
+
+  EXECUTE_FILE = 9;
+  INTERRUPT=10;
+
+  LOG = 11;
+  STOPPED=12;
+}
+
+
+
+
+message Message
+{
+  METHOD method=1;
+  string name=2;
+  string feature=3;
+  int32 version =4;
+  string path = 5;
+  bytes data=6;
+  string message = 7;
+  int32 line=8;
+}

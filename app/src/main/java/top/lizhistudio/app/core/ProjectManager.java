@@ -8,9 +8,9 @@ import top.lizhistudio.autolua.debugger.proto.Date;
 public interface ProjectManager {
 
     ProjectInfo getInfo(String projectName);
-    boolean createProject(String projectName,String feature,long version);
+    boolean createProject(String projectName,String feature,int version);
     boolean createDirectory(String projectName,String path);
-    boolean updateVersion(String projectName,long version);
+    boolean updateVersion(String projectName,int version);
     boolean updateFile(String projectName,String path,byte[] data);
     boolean deleteFile(String projectName,String path);
     boolean deleteDirectory(String projectName,String path);
@@ -36,8 +36,8 @@ public interface ProjectManager {
     {
         public String name;
         public String feature;
-        public long version;
-        public ProjectInfo(String name,String feature,long version)
+        public int version;
+        public ProjectInfo(String name,String feature,int version)
         {
             this.name = name;
             this.feature = feature;

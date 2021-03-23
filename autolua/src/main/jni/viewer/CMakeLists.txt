@@ -4,7 +4,7 @@ project(viewer)
 
 aux_source_directory(. DIR_SRCS)
 
-add_library(${PROJECT_NAME} SHARED ${DIR_SRCS})
+add_library(${PROJECT_NAME} STATIC ${DIR_SRCS})
 target_link_libraries(${PROJECT_NAME} lua)
 unset(DIR_SRCS)
 

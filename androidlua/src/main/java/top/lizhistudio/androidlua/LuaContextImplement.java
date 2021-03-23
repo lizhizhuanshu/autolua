@@ -359,6 +359,11 @@ public class LuaContextImplement extends BaseLuaContext {
     }
 
 
+    public long getNativeLua()
+    {
+        return nativeLua;
+    }
+
     @NativeLuaUseMethod
     public void cacheJavaObject(long id, Object o) {
         objectCache.put(id,o);

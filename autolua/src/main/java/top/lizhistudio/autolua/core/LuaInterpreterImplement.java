@@ -1,11 +1,9 @@
 package top.lizhistudio.autolua.core;
 
 import android.graphics.PixelFormat;
-import android.service.controls.Control;
 import android.view.Gravity;
 import android.view.WindowManager;
 
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.lizhistudio.androidlua.DebugInfo;
@@ -17,6 +15,8 @@ import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
 import top.lizhistudio.autolua.core.wrapper.UserInterfaceWrapper;
 import top.lizhistudio.autolua.extend.Controller;
+import top.lizhistudio.autolua.extend.MyThread;
+import top.lizhistudio.autolua.extend.Screen;
 import top.lizhistudio.autolua.rpc.Callback;
 import top.lizhistudio.autolua.rpc.ClientHandler;
 
@@ -28,18 +28,16 @@ public class LuaInterpreterImplement implements LuaInterpreter {
     private final UserInterfaceWrapper userInterfaceWrapper;
     private volatile Thread nowThread;
 
-
     private LuaContext newLuaContext()
     {
-
         JavaObjectWrapperFactoryImplement.Builder builder = new JavaObjectWrapperFactoryImplement.Builder();
         builder.registerThrowable()
                 .registerStruct(PixelFormat.class)
                 .registerStruct(WindowManager.LayoutParams.class)
                 .registerStruct(Gravity.class)
-                .register(new RPCJavaInterfaceWrapper(UserInterface.FloatView.class))
                 .registerLuaAdapter(UserInterfaceWrapper.class)
                 .registerInterface(UserInterface.FloatView.class)
+                .registerLuaAdapter(MyThread.class)
                 .registerLuaAdapter(Controller.class);
         JavaObjectWrapperFactory javaObjectWrapperFactory = builder.build();
         LuaContextImplement luaContext = new LuaContextImplement(javaObjectWrapperFactory);
@@ -47,12 +45,10 @@ public class LuaInterpreterImplement implements LuaInterpreter {
         luaContext.setGlobal("PixelFormat", PixelFormat.class);
         luaContext.setGlobal("LayoutParamsFlags", WindowManager.LayoutParams.class);
         luaContext.setGlobal("Gravity", Gravity.class);
-        luaContext.getGlobal("package");
-        luaContext.getField(-1,"loaded");
-        luaContext.push(Controller.getDefault());
-        luaContext.setField(-2,"controller");
-        luaContext.pop(2);
+        luaContext.setGlobal("Controller",Controller.class,Controller.getDefault());
+        luaContext.setGlobal("Thread", MyThread.class,new MyThread());
         luaContext.setGlobal("print",printHandler);
+        Screen.injectModel(luaContext.getNativeLua());
         return luaContext;
     }
 

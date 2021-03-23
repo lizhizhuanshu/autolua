@@ -1,41 +1,65 @@
+
+---@class Screen:Viewer
 local M = {}
 
----获取屏幕的宽
----@return integer
-function M.getWidth()
+---屏幕对象，可以获取屏幕数据，找图找色
+Screen = M
+
+---获取屏幕初始的宽,高
+---@return integer 屏幕的宽
+---@return integer 屏幕的高
+function M:getBaseWidthHeight()
     
 end
 
----获取屏幕的高
----@return integer
-function M.getHeight()
-    
-end
 
 ---获取屏幕的旋转方向
 ---@return integer
-function M.getRotation()
+function M:getRotation()
     
 end
 
----获取当前手机使水平还是垂直状态
+
+
+---获取手机初始状态是横屏还是竖屏
 ---@return integer
-function M.getDirection()
+function M:getBaseDirection()
     
 end
 
----获取当前屏幕密度
+---获取手机初始屏幕密度
 ---@return integer
-function M.getDensity()
+function M:getBaseDensity()
     
 end
 
----创建一个虚拟显示，用于找图找色等功能
----@param width integer 虚拟屏幕的宽
----@param height integer 虚拟屏幕的高
----@return VirtualDisplay 新的虚拟屏幕
-function M.newDisplay(width,height)
+---获取当前屏幕宽,高
+---@return integer 屏幕的宽
+---@return integer 屏幕的高
+function M:getWidthHeight()
     
 end
 
-return M
+---初始化虚拟屏幕的宽和高
+---@param width integer 屏幕的宽
+---@param height integer 屏幕的高
+function M:initialize(width,height)
+    
+end
+
+---更新虚拟屏幕内的颜色数据
+function M:update()
+    
+end
+
+---手机当前方向是否改变
+---@return boolean 手机当前方向与初始化的不同返回true，否则返回flase
+function M:isChangeDirection()
+    
+end
+
+---销毁当前虚拟屏幕
+function M:destroy()
+    
+end
+

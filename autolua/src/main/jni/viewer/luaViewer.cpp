@@ -1,12 +1,11 @@
 #include"mlua.h"
 #include"viewer.h"
 #include"feature.h"
-#include<vector>
+#include "luaViewer.h"
 
 
-extern "C" {
-	LUA_METHOD  int luaopen_viewer(lua_State* L);
-}
+
+
 
 #define SET_VIEWER_METHOD(m) {#m"ByShiftColor",m<Color>},{#m"ByShiftColorSum",m<int>}
 
@@ -44,7 +43,25 @@ class DotMatrix;
 
 int luaopen_viewer(lua_State* L)
 {
-	static luaL_Reg methods[] =
+    if (luaL_newClassMetatable(DotMatrix, L))
+    {
+        static luaL_Reg methods[] =
+                {
+                        {"toTable",dotMatrixToTable},
+                        {"height",dotMatrixHeight},
+                        {"width",dotMatrixWidth},
+                        {"findMatrix",findMatrix},
+                        {"__gc",lua::finish<DotMatrix>},
+                        {NULL,NULL}
+                };
+        luaL_setfuncs(L, methods, 0);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -2, "__index");
+    }
+    lua_pop(L,1);
+
+
+    static luaL_Reg methods[] =
 	{
 		{"getColor",getColor},
 		{"newDotMatrix",createDotMatrixOf},
@@ -57,24 +74,6 @@ int luaopen_viewer(lua_State* L)
 		SET_VIEWER_METHOD(getColorCoordMatrix),
 		{NULL,NULL}
 	};
-
-
-	if (luaL_newClassMetatable(DotMatrix, L))
-	{
-		static luaL_Reg methods[] =
-		{
-			{"toTable",dotMatrixToTable},
-			{"height",dotMatrixHeight},
-			{"width",dotMatrixWidth},
-			{"findMatrix",findMatrix},
-			{"__gc",lua::finish<DotMatrix>},
-			{NULL,NULL}
-		};
-		luaL_setfuncs(L, methods, 0);
-		lua_pushvalue(L, -1);
-		lua_setfield(L, -2, "__index");
-	}
-
 	luaL_newlib(L, methods);
 	lua_pushstring(L, COORDINATES_OVERFLOW);
 	lua_setfield(L, -2, "COORDINATES_OVERFLOW");

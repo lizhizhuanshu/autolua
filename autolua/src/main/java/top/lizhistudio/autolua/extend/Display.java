@@ -30,7 +30,7 @@ public class Display {
     private ImageReader imageReader;
     private Image nowImage = null;
 
-    public Display(int width,int height) throws InterruptedException
+    public Display()
     {
         iBinder = SurfaceControlWrap.createDisplay("Display@"+hashCode(),false);
         nowSize = new Point();
@@ -38,7 +38,6 @@ public class Display {
         handlerThread = new HandlerThread("worker@"+hashCode());
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
-        reset(width,height);
     }
 
     public synchronized void destroy()
@@ -63,20 +62,20 @@ public class Display {
 
     private int getDirection()
     {
-        return IWindowManager.getRotation()%2 == 0 ? Screen.getDirection(): -Screen.getDirection();
+        return IWindowManager.getRotation()%2 == 0 ? Screen.getBaseDirection(): -Screen.getBaseDirection();
     }
 
-    public boolean checkDirection()
+    public boolean isChangeDirection()
     {
-        return getDirection() == recordDirection;
+        return getDirection() != recordDirection;
     }
 
     public synchronized void reset(int width, int height) throws InterruptedException
     {
         recordDirection = getDirection();
-        int baseWidth = Screen.getWidth();
-        int baseHeight = Screen.getHeight();
-        int baseDirection = Screen.getDirection();
+        int baseWidth = Screen.getBaseWidth();
+        int baseHeight = Screen.getBaseHeight();
+        int baseDirection = Screen.getBaseDirection();
         if (width <=0 && height<=0)
         {
             if(recordDirection != baseDirection)

@@ -357,7 +357,7 @@ public class AutoLuaEngine {
         }
     }
 
-    public LuaInterpreter getInterrupt()
+    public LuaInterpreter getInterpreter()
     {
         ClientHandler clientHandler = this.clientHandler;
         try{

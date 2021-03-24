@@ -125,6 +125,8 @@ public class Controller {
     {
         int id = (int)context.toInteger(2);
         int index = pointersState.getPointerIndex(id);
+        Pointer pointer = pointersState.get(index);
+        pointer.setUp(true);
         context.push(index>=0 && updateTouch(MotionEvent.ACTION_UP,index,0));
         return 1;
     }

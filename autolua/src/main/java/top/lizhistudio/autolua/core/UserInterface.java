@@ -52,8 +52,8 @@ public interface UserInterface {
         private static final long serialVersionUID = 54634563L;
         public int x;
         public int y;
-        public int width;
-        public int height;
+        public int width=-1;
+        public int height=-1;
         public int format;
         public int flags;
         public int gravity;

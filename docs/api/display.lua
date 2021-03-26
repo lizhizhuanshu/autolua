@@ -1,9 +1,9 @@
 
----@class Screen:Viewer
+---@class Display:Viewable
 local M = {}
 
 ---屏幕对象，可以获取屏幕数据，找图找色
-Screen = M
+Display = M
 
 ---获取屏幕初始的宽,高
 ---@return integer 屏幕的宽

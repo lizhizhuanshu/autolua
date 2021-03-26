@@ -9,6 +9,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.util.LongSparseArray;
 
 
 import java.io.File;
@@ -17,10 +18,20 @@ import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import top.lizhistudio.androidlua.annotation.NativeLuaUseMethod;
 import top.lizhistudio.autolua.conceal.IWindowManager;
 import top.lizhistudio.autolua.conceal.SurfaceControlWrap;
 
 public class Display {
+    public static final int  VERTICAL = 1;
+    public static final int  LEVEL = -1;
+    private static final Point baseSize= new Point();
+    private static final int defaultDirection;
+    private static final LongSparseArray<Display> displays = new LongSparseArray<>();
+    static {
+        IWindowManager.getBaseDisplaySize(IWindowManager.MAIN_DISPLAY_TOKEN, baseSize);
+        defaultDirection = baseSize.x >baseSize.y ? LEVEL:VERTICAL;
+    }
     private final AtomicBoolean isDestroy = new AtomicBoolean(false);
     private int recordDirection;
     private final IBinder iBinder;
@@ -30,7 +41,60 @@ public class Display {
     private ImageReader imageReader;
     private Image nowImage = null;
 
-    public Display()
+
+    public static int getBaseWidth()
+    {
+        return baseSize.x;
+    }
+
+    public static int getBaseHeight()
+    {
+        return baseSize.y;
+    }
+
+    public static int getBaseDirection()
+    {
+        return defaultDirection;
+    }
+
+
+    public static int getRotation()
+    {
+        return IWindowManager.getRotation();
+    }
+
+    public static int getBaseDensity()
+    {
+        return IWindowManager.getBaseDisplayDensity(IWindowManager.MAIN_DISPLAY_TOKEN);
+    }
+
+
+    @NativeLuaUseMethod
+    public static void releaseDisplay(long nativeLua)
+    {
+        synchronized (displays)
+        {
+            displays.remove(nativeLua);
+        }
+    }
+
+    public static Display getDisplay(long nativeLua)
+    {
+        synchronized (displays)
+        {
+            return displays.get(nativeLua);
+        }
+    }
+
+    public static void clearDisplay()
+    {
+        synchronized (displays)
+        {
+            displays.clear();
+        }
+    }
+
+    private Display()
     {
         iBinder = SurfaceControlWrap.createDisplay("Display@"+hashCode(),false);
         nowSize = new Point();
@@ -39,6 +103,17 @@ public class Display {
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
     }
+
+    public static Display newInstance(long nativeLua)
+    {
+        Display result = new Display();
+        synchronized (displays)
+        {
+            displays.put(nativeLua,result);
+        }
+        return result;
+    }
+
 
     public synchronized void destroy()
     {
@@ -62,7 +137,7 @@ public class Display {
 
     private int getDirection()
     {
-        return IWindowManager.getRotation()%2 == 0 ? Screen.getBaseDirection(): -Screen.getBaseDirection();
+        return IWindowManager.getRotation()%2 == 0 ? getBaseDirection(): -getBaseDirection();
     }
 
     public boolean isChangeDirection()
@@ -73,9 +148,9 @@ public class Display {
     public synchronized void reset(int width, int height) throws InterruptedException
     {
         recordDirection = getDirection();
-        int baseWidth = Screen.getBaseWidth();
-        int baseHeight = Screen.getBaseHeight();
-        int baseDirection = Screen.getBaseDirection();
+        int baseWidth = getBaseWidth();
+        int baseHeight = getBaseHeight();
+        int baseDirection = getBaseDirection();
         if (width <=0 && height<=0)
         {
             if(recordDirection != baseDirection)

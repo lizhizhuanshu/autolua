@@ -1,10 +1,3 @@
----‘userdata’类型的点阵数据
----@class DotMatrix
----@field toTable fun():table
----@field height fun():integer
----@field width fun():integer
----@field findMatrix fun(matrix:DotMatrix,sim:number):integer,integer
-
 ---‘userdata’类型的，包含了颜色的二进制数据
 ---@class ColorFeature
 ---@field toString fun():string
@@ -16,16 +9,6 @@
 ---可以找图找色的对象
 ---@class Viewable
 local M = {}
-
-
-
-
-
----将table类型的点阵数据转化为userdata类型的以便于使用
----@param t table ‘table’类型的点阵数据
----@return DotMatrix ‘userdata’类型的点阵数据
-function M:newDotMatrix(t)
-end
 
 
 ---范围内查找符合点阵特征的点的坐标，返回第一个找到的点坐标，没找到则返回-1，-1

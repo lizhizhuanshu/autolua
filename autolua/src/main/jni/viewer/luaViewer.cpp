@@ -41,39 +41,41 @@ static int dotMatrixHeight(lua_State* L);
 class DotMatrix;
 
 
-int luaopen_viewer(lua_State* L)
+void pushDotMatrixConstructor(lua_State*L)
 {
-    if (luaL_newClassMetatable(DotMatrix, L))
-    {
-        static luaL_Reg methods[] =
-                {
-                        {"toTable",dotMatrixToTable},
-                        {"height",dotMatrixHeight},
-                        {"width",dotMatrixWidth},
-                        {"findMatrix",findMatrix},
-                        {"__gc",lua::finish<DotMatrix>},
-                        {NULL,NULL}
-                };
-        luaL_setfuncs(L, methods, 0);
-        lua_pushvalue(L, -1);
-        lua_setfield(L, -2, "__index");
-    }
-    lua_pop(L,1);
-
-
-    static luaL_Reg methods[] =
+	if (luaL_newClassMetatable(DotMatrix, L))
 	{
-		{"getColor",getColor},
-		{"newDotMatrix",createDotMatrixOf},
-		SET_VIEWER_METHOD(getColorCount),
-		SET_VIEWER_METHOD(findColor),
-		SET_VIEWER_METHOD(whichColor),
-		SET_VIEWER_METHOD(findFeature),
-		SET_VIEWER_METHOD(isFeature),
-		SET_VIEWER_METHOD(getDotMatrix),
-		SET_VIEWER_METHOD(getColorCoordMatrix),
-		{NULL,NULL}
-	};
+		static luaL_Reg methods[] =
+				{
+						{"toTable",dotMatrixToTable},
+						{"height",dotMatrixHeight},
+						{"width",dotMatrixWidth},
+						{"findMatrix",findMatrix},
+						{"__gc",lua::finish<DotMatrix>},
+						{NULL,NULL}
+				};
+		luaL_setfuncs(L, methods, 0);
+		lua_pushvalue(L, -1);
+		lua_setfield(L, -2, "__index");
+	}
+	lua_pop(L,1);
+	lua_pushcfunction(L,createDotMatrixOf);
+}
+
+void pushViewerMethodTable(lua_State*L)
+{
+	static luaL_Reg methods[] =
+			{
+					{"getColor",getColor},
+					SET_VIEWER_METHOD(getColorCount),
+					SET_VIEWER_METHOD(findColor),
+					SET_VIEWER_METHOD(whichColor),
+					SET_VIEWER_METHOD(findFeature),
+					SET_VIEWER_METHOD(isFeature),
+					SET_VIEWER_METHOD(getDotMatrix),
+					SET_VIEWER_METHOD(getColorCoordMatrix),
+					{NULL,NULL}
+			};
 	luaL_newlib(L, methods);
 	lua_pushstring(L, COORDINATES_OVERFLOW);
 	lua_setfield(L, -2, "COORDINATES_OVERFLOW");
@@ -87,9 +89,58 @@ int luaopen_viewer(lua_State* L)
 	PUSH_FIND_ORDER(L, -3, RIGHT_LEFT_UP_DOWN);
 	PUSH_FIND_ORDER(L, -3, RIGHT_LEFT_DOWN_UP);
 	lua_setfield(L, -2, "FIND_ORDER");
-
-	return 1;
 }
+
+
+//int luaopen_viewer(lua_State* L)
+//{
+//    if (luaL_newClassMetatable(DotMatrix, L))
+//    {
+//        static luaL_Reg methods[] =
+//                {
+//                        {"toTable",dotMatrixToTable},
+//                        {"height",dotMatrixHeight},
+//                        {"width",dotMatrixWidth},
+//                        {"findMatrix",findMatrix},
+//                        {"__gc",lua::finish<DotMatrix>},
+//                        {NULL,NULL}
+//                };
+//        luaL_setfuncs(L, methods, 0);
+//        lua_pushvalue(L, -1);
+//        lua_setfield(L, -2, "__index");
+//    }
+//    lua_pop(L,1);
+//
+//
+//    static luaL_Reg methods[] =
+//	{
+//		{"getColor",getColor},
+//		{"newDotMatrix",createDotMatrixOf},
+//		SET_VIEWER_METHOD(getColorCount),
+//		SET_VIEWER_METHOD(findColor),
+//		SET_VIEWER_METHOD(whichColor),
+//		SET_VIEWER_METHOD(findFeature),
+//		SET_VIEWER_METHOD(isFeature),
+//		SET_VIEWER_METHOD(getDotMatrix),
+//		SET_VIEWER_METHOD(getColorCoordMatrix),
+//		{NULL,NULL}
+//	};
+//	luaL_newlib(L, methods);
+//	lua_pushstring(L, COORDINATES_OVERFLOW);
+//	lua_setfield(L, -2, "COORDINATES_OVERFLOW");
+//	lua_newtable(L);
+//	PUSH_FIND_ORDER(L, -3, UP_DOWN_LEFT_RIGHT);
+//	PUSH_FIND_ORDER(L, -3, UP_DOWN_RIGHT_LEFT);
+//	PUSH_FIND_ORDER(L, -3, DOWN_UP_LEFT_RIGHT);
+//	PUSH_FIND_ORDER(L, -3, DOWN_UP_RIGHT_LEFT);
+//	PUSH_FIND_ORDER(L, -3, LEFT_RIGHT_UP_DOWN);
+//	PUSH_FIND_ORDER(L, -3, LEFT_RIGHT_DOWN_UP);
+//	PUSH_FIND_ORDER(L, -3, RIGHT_LEFT_UP_DOWN);
+//	PUSH_FIND_ORDER(L, -3, RIGHT_LEFT_DOWN_UP);
+//	lua_setfield(L, -2, "FIND_ORDER");
+//
+//	return 1;
+//}
 
 
 

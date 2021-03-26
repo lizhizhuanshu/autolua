@@ -14,9 +14,9 @@ import top.lizhistudio.androidlua.LuaContextImplement;
 import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
 import top.lizhistudio.autolua.core.wrapper.UserInterfaceWrapper;
-import top.lizhistudio.autolua.extend.Controller;
+import top.lizhistudio.autolua.extend.Input;
 import top.lizhistudio.autolua.extend.MyThread;
-import top.lizhistudio.autolua.extend.Screen;
+import top.lizhistudio.autolua.extend.Core;
 import top.lizhistudio.autolua.rpc.Callback;
 import top.lizhistudio.autolua.rpc.ClientHandler;
 
@@ -37,18 +37,16 @@ public class LuaInterpreterImplement implements LuaInterpreter {
                 .registerStruct(Gravity.class)
                 .registerLuaAdapter(UserInterfaceWrapper.class)
                 .registerInterface(UserInterface.FloatView.class)
-                .registerLuaAdapter(MyThread.class)
-                .registerLuaAdapter(Controller.class);
+                .registerLuaAdapter(Input.class);
         JavaObjectWrapperFactory javaObjectWrapperFactory = builder.build();
         LuaContextImplement luaContext = new LuaContextImplement(javaObjectWrapperFactory);
         luaContext.setGlobal(UserInterface.LUA_CLASS_NAME,UserInterfaceWrapper.class,userInterfaceWrapper);
         luaContext.setGlobal("PixelFormat", PixelFormat.class);
         luaContext.setGlobal("LayoutParamsFlags", WindowManager.LayoutParams.class);
         luaContext.setGlobal("Gravity", Gravity.class);
-        luaContext.setGlobal("Controller",Controller.class,Controller.getDefault());
-        luaContext.setGlobal("Thread", MyThread.class,new MyThread());
+        luaContext.setGlobal("Input", Input.class, Input.getDefault());
         luaContext.setGlobal("print",printHandler);
-        Screen.injectModel(luaContext.getNativeLua());
+        Core.inject(luaContext.getNativeLua());
         return luaContext;
     }
 

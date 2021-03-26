@@ -4,12 +4,11 @@
 
 #include "luajava.h"
 #include "Bitmap.h"
-#include "lua.h"
 #include "lauxlib.h"
-
+#include "display.h"
 #include "luaViewer.h"
 
-#define SCREEN_CLASS_NAME "top/lizhistudio/autolua/extend/Screen"
+
 #define DISPLAY_CLASS_NAME "top/lizhistudio/autolua/extend/Display"
 #define BYTEBUFFER_CLASS_NAME "java/nio/ByteBuffer"
 
@@ -19,7 +18,12 @@
 #define FreeGlobal(env,obj) (*env)->DeleteGlobalRef(env,obj)
 
 
-static jclass ScreenClassID = NULL;
+typedef struct Display{
+    struct Bitmap buffer;
+    jobject object;
+}LDisplay;
+
+
 static jclass DisplayClassID = NULL;
 
 static jmethodID getBaseWidthMethodID;
@@ -38,24 +42,21 @@ static jmethodID getPixelStrideMethodID;
 static jmethodID getWidthMethodID;
 static jmethodID updateMethodID;
 
-JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
+
+void onInitializeDisplayContext(JNIEnv*env)
 {
 #define findGlobalClass(env,name) GLOBAL(env,JavaFindClass(env,name))
 #define SET_JAVA_STATIC_METHOD(methodName,classID,result,...) methodName##MethodID = (*env)->GetStaticMethodID(env,classID,#methodName,ARGS(__VA_ARGS__)result)
 #define SET_JAVA_METHOD(methodName,classID,result,...) methodName##MethodID = (*env)->GetMethodID(env,classID,#methodName,ARGS(__VA_ARGS__)result)
 
-    JNIEnv * env = NULL;
-    if ((*vm)->GetEnv(vm,(void**)&env, JNI_VERSION_1_6) != JNI_OK)
-        return -1;
-    ScreenClassID = findGlobalClass(env,SCREEN_CLASS_NAME);
     DisplayClassID = findGlobalClass(env,DISPLAY_CLASS_NAME);
 
-    SET_JAVA_STATIC_METHOD(getBaseWidth,ScreenClassID,"I");
-    SET_JAVA_STATIC_METHOD(getBaseHeight, ScreenClassID, "I");
-    SET_JAVA_STATIC_METHOD(getBaseDirection,ScreenClassID,"I");
-    SET_JAVA_STATIC_METHOD(getBaseDensity, ScreenClassID, "I");
-    SET_JAVA_STATIC_METHOD(getRotation,ScreenClassID,"I");
-    SET_JAVA_STATIC_METHOD(releaseDisplay,ScreenClassID,"V","J");
+    SET_JAVA_STATIC_METHOD(getBaseWidth,DisplayClassID,"I");
+    SET_JAVA_STATIC_METHOD(getBaseHeight, DisplayClassID, "I");
+    SET_JAVA_STATIC_METHOD(getBaseDirection,DisplayClassID,"I");
+    SET_JAVA_STATIC_METHOD(getBaseDensity, DisplayClassID, "I");
+    SET_JAVA_STATIC_METHOD(getRotation,DisplayClassID,"I");
+    SET_JAVA_STATIC_METHOD(releaseDisplay,DisplayClassID,"V","J");
 
     SET_JAVA_METHOD(reset, DisplayClassID, "V", "II");
     SET_JAVA_METHOD(getDisplayBuffer, DisplayClassID, CLASS_ARG(BYTEBUFFER_CLASS_NAME));
@@ -65,21 +66,15 @@ JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
     SET_JAVA_METHOD(getPixelStride, DisplayClassID, "I");
     SET_JAVA_METHOD(isChangeDirection, DisplayClassID, "Z");
     SET_JAVA_METHOD(update, DisplayClassID, "V");
-    return  JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
-    JNIEnv * env = NULL;
-    if ((*vm)->GetEnv(vm,(void**)&env, JNI_VERSION_1_6) != JNI_OK)
-        return ;
-    FreeGlobal(env,ScreenClassID);
+void onReleaseDisplayContext(JNIEnv*env)
+{
     FreeGlobal(env,DisplayClassID);
 }
 
-typedef struct Display{
-    struct Bitmap buffer;
-    jobject object;
-}LDisplay;
+
+
 
 static int getBaseWidthHeight(lua_State*L);
 static int getRotation(lua_State*L);
@@ -98,25 +93,25 @@ static int destroy(lua_State*L);
 int getBaseWidthHeight(lua_State*L)
 {
     JNIEnv *env = GetJNIEnv(L);
-    int width = (*env)->CallStaticIntMethod(env,ScreenClassID,getBaseWidthMethodID);
-    int height = (*env)->CallStaticIntMethod(env,ScreenClassID,getBaseHeightMethodID);
+    int width = (*env)->CallStaticIntMethod(env,DisplayClassID,getBaseWidthMethodID);
+    int height = (*env)->CallStaticIntMethod(env,DisplayClassID,getBaseHeightMethodID);
     lua_pushinteger(L,width);
     lua_pushinteger(L,height);
     return 2;
 }
 
 
-#define ScreenMethod(name) int   name(lua_State*L) \
+#define StaticMethod(name) int   name(lua_State*L) \
 {\
     JNIEnv *env = GetJNIEnv(L);\
-    int result =(*env)->CallStaticIntMethod(env,ScreenClassID,name##MethodID);\
+    int result =(*env)->CallStaticIntMethod(env,DisplayClassID,name##MethodID);\
     lua_pushinteger(L,result);\
     return 1;\
 }
 
-ScreenMethod(getRotation)
-ScreenMethod(getBaseDensity)
-ScreenMethod(getBaseDirection)
+StaticMethod(getRotation)
+StaticMethod(getBaseDensity)
+StaticMethod(getBaseDirection)
 
 
 int getWidthHeight(lua_State*L)
@@ -178,19 +173,18 @@ int destroy(lua_State*L)
     {
         (*env)->DeleteWeakGlobalRef(env,display->object);
         display->object = NULL;
-        (*env)->CallStaticVoidMethod(env,ScreenClassID,releaseDisplayMethodID,(jlong)L);
+        (*env)->CallStaticVoidMethod(env,DisplayClassID,releaseDisplayMethodID,(jlong)L);
     }
     return 0;
 }
 
-JNIEXPORT void JNICALL
-Java_top_lizhistudio_autolua_extend_Screen_injectModel(JNIEnv *env, jclass clazz, jlong native_lua,
-                                                       jobject display) {
+
+void pushDisplay(lua_State*L,JNIEnv*env,jobject object)
+{
 #define ONE_METHOD(name) {#name,name}
-    lua_State *L = (lua_State*)native_lua;
     LDisplay * cDisplay = lua_newuserdata(L,sizeof(LDisplay));
-    cDisplay->object = (*env)->NewWeakGlobalRef(env,display);
-    luaopen_viewer(L);
+    cDisplay->object = (*env)->NewWeakGlobalRef(env,object);
+    pushViewerMethodTable(L);
     luaL_Reg  method[] = {
             ONE_METHOD(getBaseWidthHeight),
             ONE_METHOD(getRotation),
@@ -208,5 +202,4 @@ Java_top_lizhistudio_autolua_extend_Screen_injectModel(JNIEnv *env, jclass clazz
     lua_pushvalue(L,-1);
     lua_setfield(L,-2,"__index");
     lua_setmetatable(L,-2);
-    lua_setglobal(L,"Screen");
 }

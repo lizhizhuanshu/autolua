@@ -23,6 +23,7 @@ import top.lizhistudio.autolua.debugger.proto.DebugMessage;
 import top.lizhistudio.autolua.rpc.Callback;
 
 public class DebuggerServer extends Observable {
+    private static final String TAG = "DebuggerServer";
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private volatile ServerSocket serverSocket;
     private volatile Transport transport;
@@ -143,7 +144,6 @@ public class DebuggerServer extends Observable {
                     }
                     @Override
                     public void onError(Throwable throwable) {
-                        Log.e("---------","send stop ");
                         sendStopped();
                         autoLuaEngine.setPrintListener(old);
                         if (throwable != null)

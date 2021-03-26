@@ -8,7 +8,7 @@ import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.annotation.LuaMethod;
 import top.lizhistudio.autolua.conceal.InputManagerWrap;
 
-public class Controller {
+public class Input {
     private final InputDevice touchDevice;
 
     private long lastTouchDown;
@@ -29,7 +29,7 @@ public class Controller {
         }
     }
 
-    private Controller()
+    private Input()
     {
         touchDevice = InputManagerWrap.getTouchDevice();
         initPointers();
@@ -134,10 +134,10 @@ public class Controller {
 
     private static final class Default
     {
-        private static final Controller instance = new Controller();
+        private static final Input instance = new Input();
     }
 
-    public static Controller getDefault()
+    public static Input getDefault()
     {
         return Default.instance;
     }

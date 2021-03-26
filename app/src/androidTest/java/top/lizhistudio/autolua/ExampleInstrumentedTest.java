@@ -1,12 +1,11 @@
 package top.lizhistudio.autolua;
 
 import android.content.Context;
-import android.view.WindowManager;
+
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import org.apache.http.util.ByteArrayBuffer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

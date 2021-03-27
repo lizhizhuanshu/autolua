@@ -22,12 +22,4 @@ public interface LuaInterpreter {
     boolean setLoadScriptPath(String path);
     @RPCMethod
     boolean setLoadLibraryPath(String path);
-
-    interface PrintListener
-    {
-        @RPCMethod
-        void onPrint(String source,int line,String message);
-        @RPCMethod
-        void onErrorPrint(String source,int line,String message);
-    }
 }

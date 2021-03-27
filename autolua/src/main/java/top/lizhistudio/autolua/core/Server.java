@@ -23,7 +23,6 @@ import top.lizhistudio.autolua.rpc.transport.Transport;
 public class Server {
     private static final String TAG = "Server";
     public static final String AUTO_LUA_SERVICE_NAME = "AutoLua";
-    public static final String LISTENER_SERVICE_NAME = "PrintListener";
     private final Transport transport;
     private final ClientHandler clientHandler;
     private final ServiceHandler serviceHandler;
@@ -91,6 +90,12 @@ public class Server {
     }
 
 
+    private static LuaContextFactory createLuaContextFactory(String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        Class<?>aClass = Class.forName(className);
+        return (LuaContextFactory)aClass.newInstance();
+    }
+
+
     public static void main(String[] args)
     {
         Options options = new Options();
@@ -98,6 +103,7 @@ public class Server {
         options.addOption("l","local-server",true,"local server feature");
         options.addOption("h","help",false,"print options");
         options.addOption("v","verify",true,"verify password");
+        options.addOption("f","factory",true,"lua context factory");
         try{
             CommandLine commandLine = new DefaultParser().parse(options,args);
             if (commandLine.hasOption('h'))
@@ -115,13 +121,14 @@ public class Server {
                         new PasswordProcurator( commandLine.getOptionValue('v')));
                 ClientHandler clientHandler = new ClientHandler(transport);
                 ServiceHandler serviceHandler = new ServiceHandler(transport);
-                UserInterface userInterface = clientHandler.getService(UserInterface.LUA_CLASS_NAME,UserInterface.class);
-                LuaInterpreter.PrintListener printListener = clientHandler.getService(
-                        LISTENER_SERVICE_NAME , LuaInterpreter.PrintListener.class);
-                LuaInterpreter luaInterpreter = new LuaInterpreterImplement(userInterface,
-                        printListener);
-                serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
                 self = new Server(transport,clientHandler,serviceHandler);
+                LuaContextFactory luaContextFactory;
+                if (commandLine.hasOption('f'))
+                    luaContextFactory = createLuaContextFactory(commandLine.getOptionValue('f'));
+                else
+                    luaContextFactory = new BaseLuaContextFactory();
+                LuaInterpreter luaInterpreter = new LuaInterpreterImplement(luaContextFactory);
+                serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
                 System.out.println(1);
                 self.serve();
                 System.exit(0);

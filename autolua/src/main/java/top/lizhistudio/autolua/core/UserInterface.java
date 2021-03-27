@@ -9,7 +9,6 @@ import top.lizhistudio.autolua.annotation.RPCInterface;
 import top.lizhistudio.autolua.annotation.RPCMethod;
 
 public interface UserInterface {
-    String LUA_CLASS_NAME = "UI";
     @RPCMethod
     void showMessage(String message,int time);
     @RPCMethod

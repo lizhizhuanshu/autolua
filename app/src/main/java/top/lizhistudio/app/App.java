@@ -19,7 +19,9 @@ import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.app.provider.GlideImageProvider;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
+import top.lizhistudio.autolua.core.BaseLuaContextFactory;
 import top.lizhistudio.autolua.core.BasePrintListener;
+import top.lizhistudio.autolua.core.UserInterface;
 
 
 public class App extends Application {
@@ -46,8 +48,9 @@ public class App extends Application {
                 .setProcessPrint(true)
                 .setPackagePath(this.getPackageCodePath());
         autoLuaEngine.attach(new EngineObserver());
-        autoLuaEngine.setPrintListener(new BasePrintListener());
-        autoLuaEngine.setUserInterface(UserInterfaceImplement.getDefault());
+        autoLuaEngine.register(BaseLuaContextFactory.AUTO_LUA_UI_NAME,
+                UserInterface.class,
+                UserInterfaceImplement.getDefault());
     }
 
 

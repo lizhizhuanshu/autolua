@@ -13,12 +13,15 @@ import java.net.Socket;
 import java.util.Observable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import top.lizhistudio.androidlua.BaseLuaContext;
 import top.lizhistudio.androidlua.Util;
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
+import top.lizhistudio.autolua.core.BaseLuaContextFactory;
 import top.lizhistudio.autolua.core.LuaInterpreter;
+import top.lizhistudio.autolua.core.PrintListener;
 import top.lizhistudio.autolua.debugger.proto.DebugMessage;
 import top.lizhistudio.autolua.rpc.Callback;
 
@@ -28,7 +31,7 @@ public class DebuggerServer extends Observable {
     private volatile ServerSocket serverSocket;
     private volatile Transport transport;
     private String rootPath = null;
-    private final LuaInterpreter.PrintListener printListener;
+    private final PrintListener printListener;
 
     private volatile String errorMessage = null;
 
@@ -44,7 +47,7 @@ public class DebuggerServer extends Observable {
 
     private DebuggerServer()
     {
-        printListener = new LuaInterpreter.PrintListener() {
+        printListener = new PrintListener() {
             private void log(String source,int line,String message)
             {
 
@@ -56,11 +59,6 @@ public class DebuggerServer extends Observable {
             }
             @Override
             public void onPrint(String source, int line, String message) {
-                log(source, line, message);
-            }
-
-            @Override
-            public void onErrorPrint(String source, int line, String message) {
                 log(source, line, message);
             }
         };
@@ -125,6 +123,7 @@ public class DebuggerServer extends Observable {
             String projectPath = projectManager.getProjectPath(projectName);
             if (projectPath!= null)
             {
+
                 MLSEngine.setLVConfig(new LVConfigBuilder(App.getApp())
                         .setRootDir(projectPath)
                         .setImageDir(projectPath+"/image")
@@ -132,7 +131,7 @@ public class DebuggerServer extends Observable {
                         .setGlobalResourceDir(projectPath+"/resource").build());
                 //此处需要注意
                 rootPath = projectPath;
-                LuaInterpreter.PrintListener old = autoLuaEngine.setPrintListener(printListener);
+                autoLuaEngine.register(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME,PrintListener.class,printListener);
                 interpreter.reset();
                 interpreter.setLoadScriptPath(projectPath);
                 interpreter.executeFile(projectPath + "/" + path, new Callback() {
@@ -140,12 +139,12 @@ public class DebuggerServer extends Observable {
                     public void onCompleted(Object result) {
                         //Log.d(TAG,result.toString());
                         sendStopped();
-                        autoLuaEngine.setPrintListener(old);
+                        autoLuaEngine.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
                     }
                     @Override
                     public void onError(Throwable throwable) {
                         sendStopped();
-                        autoLuaEngine.setPrintListener(old);
+                        autoLuaEngine.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
                         if (throwable != null)
                         {
                             throwable.printStackTrace();
@@ -290,7 +289,6 @@ public class DebuggerServer extends Observable {
                 {
                 }
             }
-            transport.close();
         }
     }
 

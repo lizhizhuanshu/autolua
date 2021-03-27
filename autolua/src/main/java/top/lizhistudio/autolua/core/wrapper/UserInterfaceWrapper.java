@@ -6,17 +6,12 @@ import top.lizhistudio.autolua.core.UserInterface;
 
 public class UserInterfaceWrapper {
     private UserInterface ui;
-    public UserInterfaceWrapper()
+    public UserInterfaceWrapper(UserInterface ui)
     {
-        this.ui = null;
+        this.ui = ui;
     }
 
     public int newFloatView(LuaContext context) throws IllegalAccessException {
-        if (ui == null)
-        {
-            context.pushNil();
-            return 1;
-        }
         String name = context.toString(2);
         String uri = context.toString(3);
         UserInterface.LayoutParams layoutParams = null;
@@ -31,8 +26,6 @@ public class UserInterfaceWrapper {
     }
 
     public int takeSignal(LuaContext context) throws InterruptedException {
-        if (ui == null)
-            return 0;
         Object[] objects = (Object[])(ui.takeSignal());
         if (objects == null)
             return 0;
@@ -45,8 +38,6 @@ public class UserInterfaceWrapper {
 
     public int getFloatView(LuaContext context)
     {
-        if (ui == null)
-            return 0;
         String name = context.toString(2);
         context.push(UserInterface.FloatView.class,ui.getFloatView(name));
         return 1;
@@ -54,8 +45,6 @@ public class UserInterfaceWrapper {
 
     public int showMessage(LuaContext context)
     {
-        if (ui == null)
-            return 0;
         String message = context.toString(2);
         int time = 0;
         if (context.isInteger(3))
@@ -66,15 +55,4 @@ public class UserInterfaceWrapper {
         return 0;
     }
 
-
-
-    public void setUI(UserInterface ui)
-    {
-        this.ui = ui;
-    }
-
-    public UserInterface getUI()
-    {
-        return this.ui;
-    }
 }

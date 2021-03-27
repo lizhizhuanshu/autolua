@@ -81,21 +81,15 @@ public class AutoLuaEngine {
         }
     }
 
-    public void setUserInterface(UserInterface userInterface)
+    public void register(String name ,Class<?> aInterface,Object service)
     {
-        rpcServiceCache.put(UserInterface.LUA_CLASS_NAME,
-                new RPCService(UserInterface.class,userInterface));
+        rpcServiceCache.put(name,new RPCService(aInterface,service));
     }
 
-    public LuaInterpreter.PrintListener setPrintListener(LuaInterpreter.PrintListener printListener)
+    public void unRegister(String name)
     {
-        RPCService rpcService = rpcServiceCache.put(Server.LISTENER_SERVICE_NAME,new RPCService(LuaInterpreter.PrintListener.class,
-                printListener));
-        if (rpcService == null)
-            return null;
-        return (LuaInterpreter.PrintListener)rpcService.getService();
+        rpcServiceCache.remove(name);
     }
-
 
 
     private void update(STATE newState)
@@ -432,8 +426,10 @@ public class AutoLuaEngine {
         private String localAddress = null;
         private int port = -1;
         private String packagePath = null;
+        private String factoryName = null;
 
         private StartConfig(){}
+
 
         private String getLibraryPath()
         {
@@ -460,6 +456,11 @@ public class AutoLuaEngine {
             return this;
         }
 
+        public StartConfig setLuaContextFactory(Class<? extends LuaContextFactory> luaContextFactory)
+        {
+            factoryName = luaContextFactory.getName();
+            return this;
+        }
 
         public StartConfig setRoot(boolean is)
         {
@@ -605,6 +606,10 @@ public class AutoLuaEngine {
                 appendArg(command,"-l",localAddress);
             }
             appendArg(command,"-v",password);
+            if (factoryName != null)
+            {
+                appendArg(command,"-f",factoryName);
+            }
             command.append('\n');
             return command.toString();
         }

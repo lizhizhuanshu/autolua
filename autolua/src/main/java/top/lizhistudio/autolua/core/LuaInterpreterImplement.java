@@ -23,63 +23,35 @@ import top.lizhistudio.autolua.rpc.ClientHandler;
 public class LuaInterpreterImplement implements LuaInterpreter {
     private LuaContext context;
     private final AtomicBoolean isRunning;
-    private final LuaHandler errorHandler;
-    private final LuaHandler printHandler;
-    private final UserInterfaceWrapper userInterfaceWrapper;
+    private final LuaContextFactory luaContextFactory;
     private volatile Thread nowThread;
-
-    private LuaContext newLuaContext()
-    {
-        JavaObjectWrapperFactoryImplement.Builder builder = new JavaObjectWrapperFactoryImplement.Builder();
-        builder.registerThrowable()
-                .registerStruct(PixelFormat.class)
-                .registerStruct(WindowManager.LayoutParams.class)
-                .registerStruct(Gravity.class)
-                .registerLuaAdapter(UserInterfaceWrapper.class)
-                .registerInterface(UserInterface.FloatView.class)
-                .registerLuaAdapter(Input.class);
-        JavaObjectWrapperFactory javaObjectWrapperFactory = builder.build();
-        LuaContextImplement luaContext = new LuaContextImplement(javaObjectWrapperFactory);
-        luaContext.setGlobal(UserInterface.LUA_CLASS_NAME,UserInterfaceWrapper.class,userInterfaceWrapper);
-        luaContext.setGlobal("PixelFormat", PixelFormat.class);
-        luaContext.setGlobal("LayoutParamsFlags", WindowManager.LayoutParams.class);
-        luaContext.setGlobal("Gravity", Gravity.class);
-        luaContext.setGlobal("Input", Input.class, Input.getDefault());
-        luaContext.setGlobal("print",printHandler);
-        Core.inject(luaContext.getNativeLua());
-        return luaContext;
-    }
 
     private LuaContext checkLuaContext()
     {
         synchronized (isRunning)
         {
             if (context == null)
-                context = newLuaContext();
+                context = luaContextFactory.newInstance();
             return context;
         }
     }
 
-    public LuaInterpreterImplement(UserInterface userInterface,
-                                   PrintListener printListener)
+    public LuaInterpreterImplement(LuaContextFactory luaContextFactory)
     {
         isRunning = new AtomicBoolean(false);
-        this.userInterfaceWrapper = new UserInterfaceWrapper();
-        userInterfaceWrapper.setUI(userInterface);
-        this.printHandler = new PrintHandler(printListener);
-        this.errorHandler = new ErrorHandler(printListener);
+        this.luaContextFactory = luaContextFactory;
     }
 
     private Object[] executeWrap(byte[] code,String chunkName)
     {
         nowThread = Thread.currentThread();
-        return checkLuaContext().execute(code,chunkName,errorHandler);
+        return checkLuaContext().execute(code,chunkName,0);
     }
 
     private Object[] executeFileWrap(String path)
     {
         nowThread = Thread.currentThread();
-        return checkLuaContext().executeFile(path,errorHandler);
+        return checkLuaContext().executeFile(path,0);
     }
 
 
@@ -201,7 +173,7 @@ public class LuaInterpreterImplement implements LuaInterpreter {
         {
             if (context != null)
                 context.destroy();
-            context = newLuaContext();
+            context = null;
             isRunning.set(false);
         }else
             throw new LuaInvokeError("lua is running");
@@ -214,27 +186,6 @@ public class LuaInterpreterImplement implements LuaInterpreter {
             Thread thread = nowThread;
             if (thread != null)
                 thread.interrupt();
-        }
-    }
-
-
-    private static class ErrorHandler implements LuaHandler
-    {
-        private DebugInfo debugInfo = new DebugInfo();
-        private PrintListener printListener;
-        ErrorHandler(PrintListener printListener)
-        {
-            this.printListener = printListener;
-        }
-        @Override
-        public int onExecute(LuaContext context) throws Throwable {
-            context.getStack(1,debugInfo);
-            context.getInfo("Sl",debugInfo);
-            String path = debugInfo.getSource();
-            int currentLine = debugInfo.getCurrentLine();
-            String message = context.coerceToString(-1);
-            printListener.onErrorPrint(path,currentLine,message);
-            return 1;
         }
     }
 
@@ -263,7 +214,6 @@ public class LuaInterpreterImplement implements LuaInterpreter {
 
         @Override
         public int onExecute(LuaContext luaContext) throws Throwable {
-            ClientHandler clientHandler = Server.getInstance().getClientHandler();
             String message = getMessage(luaContext);
             luaContext.getStack(1,debugInfo);
             luaContext.getInfo("Sl",debugInfo);

@@ -60,7 +60,6 @@ public class App extends Application {
         SIApplication.isColdBoot = true;
         registerActivityLifecycleCallbacks(new ActivityLifecycleMonitor());
         /// ---------------------END-------------------
-
         MLSEngine.init(this, false)//BuildConfig.DEBUG)
                 .setImageProvider(new GlideImageProvider())             //设置图片加载器，若不设置，则不能显示图片
                 .setDefaultLazyLoadImage(false)

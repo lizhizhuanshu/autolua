@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
+import top.lizhistudio.app.util.DeleteFileUtil;
 import top.lizhistudio.autolua.debugger.proto.Date;
 import top.lizhistudio.app.core.ProjectManager;
 
@@ -210,7 +211,7 @@ public class ProjectManagerImplement implements ProjectManager {
         if (file.isFile())
             return false;
         if (file.isDirectory())
-            return file.delete();
+            DeleteFileUtil.deleteDirectory(file.getAbsolutePath());
         return true;
     }
 
@@ -223,7 +224,7 @@ public class ProjectManagerImplement implements ProjectManager {
                 return true;
             File file = new File(projectPath,projectName);
             if (file.exists())
-                file.delete();
+                DeleteFileUtil.delete(file.getAbsolutePath());
             projectInfoCache.remove(projectName);
             save();
         }

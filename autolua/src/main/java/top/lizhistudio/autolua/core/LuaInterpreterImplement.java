@@ -1,24 +1,12 @@
 package top.lizhistudio.autolua.core;
 
-import android.graphics.PixelFormat;
-import android.view.Gravity;
-import android.view.WindowManager;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.lizhistudio.androidlua.DebugInfo;
-import top.lizhistudio.androidlua.JavaObjectWrapperFactory;
-import top.lizhistudio.androidlua.JavaObjectWrapperFactoryImplement;
 import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.androidlua.LuaContextImplement;
 import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInvokeError;
-import top.lizhistudio.autolua.core.wrapper.UserInterfaceWrapper;
-import top.lizhistudio.autolua.extend.Input;
-import top.lizhistudio.autolua.extend.MyThread;
-import top.lizhistudio.autolua.extend.Core;
 import top.lizhistudio.autolua.rpc.Callback;
-import top.lizhistudio.autolua.rpc.ClientHandler;
 
 public class LuaInterpreterImplement implements LuaInterpreter {
     private LuaContext context;

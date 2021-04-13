@@ -7,7 +7,6 @@ import android.view.WindowManager;
 import top.lizhistudio.androidlua.DebugInfo;
 import top.lizhistudio.androidlua.JavaObjectWrapperFactoryImplement;
 import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.androidlua.LuaContextImplement;
 import top.lizhistudio.androidlua.LuaHandler;
 import top.lizhistudio.androidlua.exception.LuaInterruptError;
 import top.lizhistudio.autolua.core.wrapper.UserInterfaceWrapper;
@@ -54,7 +53,7 @@ public class BaseLuaContextFactory implements LuaContextFactory{
     @Override
     public LuaContext newInstance() {
 
-        LuaContextImplement luaContext = new LuaContextImplement(javaObjectWrapperFactory);
+        LuaContext luaContext = new LuaContext(javaObjectWrapperFactory);
         try{
             if (clientHandler.hasService(AUTO_LUA_UI_NAME))
             {

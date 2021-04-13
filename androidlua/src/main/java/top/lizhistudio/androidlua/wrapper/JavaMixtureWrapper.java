@@ -19,7 +19,7 @@ public class JavaMixtureWrapper extends JavaClassWrapper{
     public static JavaMixtureWrapper newInstance(@NonNull Class<?> aClass,String[] methodNames,String[] fieldNames) throws NoSuchFieldException
     {
         HashMap<String,Object> fieldsOrMethods = new HashMap<>();
-        Util.pushMethod(aClass,methodNames,fieldsOrMethods);
+        pushMethod(aClass,methodNames,fieldsOrMethods);
         for (String name :
                 fieldNames) {
             fieldsOrMethods.put(name, aClass.getField(name));
@@ -31,7 +31,7 @@ public class JavaMixtureWrapper extends JavaClassWrapper{
     public static JavaMixtureWrapper newInstanceByAnnotation(@NonNull Class<?> aClass)
     {
         HashMap<String,Object> fieldsOrMethods = new HashMap<>();
-        Util.pushMethodByAnnotation(aClass,fieldsOrMethods);
+        pushMethodByAnnotation(aClass,fieldsOrMethods);
         for (Field field:aClass.getFields())
         {
             LuaField luaField = field.getAnnotation(LuaField.class);

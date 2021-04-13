@@ -32,7 +32,7 @@ public class JavaInterfaceWrapper extends JavaClassWrapper {
     public static JavaInterfaceWrapper newInstance(@NonNull Class<?> aClass, String[] methodNames)
     {
         HashMap<String,Method> methodHashMap = new HashMap<>();
-        Util.pushMethod(aClass,methodNames,methodHashMap);
+        pushMethod(aClass,methodNames,methodHashMap);
         return new JavaInterfaceWrapper(aClass,methodHashMap);
     }
 
@@ -40,7 +40,7 @@ public class JavaInterfaceWrapper extends JavaClassWrapper {
     public static JavaInterfaceWrapper newInstanceByAnnotation(@NonNull Class<?> aClass)
     {
         HashMap<String,Method> methodHashMap = new HashMap<>();
-        Util.pushMethodByAnnotation(aClass,methodHashMap);
+        pushMethodByAnnotation(aClass,methodHashMap);
         return new JavaInterfaceWrapper(aClass,methodHashMap);
     }
 

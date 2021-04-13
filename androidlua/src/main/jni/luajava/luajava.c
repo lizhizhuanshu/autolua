@@ -13,7 +13,7 @@
 #define TYPE_ERROR_CLASS_NAME PACKAGE_NAME "/exception/LuaTypeError"
 #define INVOKE_ERROR_CLASS_NAME PACKAGE_NAME "/exception/LuaInvokeError"
 #define JAVA_INTERFACE_WRAP_CLASS_NAME PACKAGE_NAME "/JavaObjectWrapper"
-#define LUA_CONTEXT_CLASS_NAME PACKAGE_NAME "/LuaContextImplement"
+#define LUA_CONTEXT_CLASS_NAME PACKAGE_NAME "/LuaContext"
 #define LUA_HANDLER_CLASS_NAME PACKAGE_NAME "/LuaHandler"
 #define PUSH_THROWABLE_ERROR "push java throwable error"
 #define THROWABLE_CLASS_NAME "java/lang/Throwable"
@@ -88,7 +88,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
         return -1;
     LuaHandlerClass = findGlobalClass(env,LUA_HANDLER_CLASS_NAME);
     LuaTypeErrorClass = findGlobalClass(env, TYPE_ERROR_CLASS_NAME);
-    LuaContextClass = findGlobalClass(env, LUA_CONTEXT_CLASS_NAME);
+    LuaContextClass = JavaFindClass(env,LUA_CONTEXT_CLASS_NAME);
+    LuaContextClass = (*env)->NewWeakGlobalRef(env,LuaContextClass);
     LuaInvokeErrorClass = findGlobalClass(env, INVOKE_ERROR_CLASS_NAME);
     JavaObjectWrapperClass = findGlobalClass(env, JAVA_INTERFACE_WRAP_CLASS_NAME);
     ThrowableClass = findGlobalClass(env,THROWABLE_CLASS_NAME);
@@ -125,7 +126,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* reserved){
     JNIEnv * env = NULL;
     if ((*vm)->GetEnv(vm,(void**)&env, JNI_VERSION_1_6) != JNI_OK)
         return ;
-    FreeGlobal(env,LuaContextClass);
+    (*env)->DeleteWeakGlobalRef(env,LuaContextClass);
     FreeGlobal(env,LuaInvokeErrorClass);
     FreeGlobal(env,LuaTypeErrorClass);
     FreeGlobal(env, JavaObjectWrapperClass);
@@ -194,7 +195,7 @@ void ReleaseJavaObject(lua_State*L, JNIEnv*env, jlong id)
 
 
 JNIEXPORT jlong JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toInteger(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toInteger(JNIEnv *env, jclass clazz, jlong native_lua,
                                                jint index) {
     lua_State *L =toLuaState(native_lua);
     if (lua_isnumber(L,index))
@@ -207,7 +208,7 @@ Java_top_lizhistudio_androidlua_LuaJava_toInteger(JNIEnv *env, jclass clazz, jlo
 }
 
 JNIEXPORT jdouble JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toNumber(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toNumber(JNIEnv *env, jclass clazz, jlong native_lua,
                                               jint index) {
     lua_State *L =toLuaState(native_lua);
     if (lua_isnumber(L,index))
@@ -220,14 +221,14 @@ Java_top_lizhistudio_androidlua_LuaJava_toNumber(JNIEnv *env, jclass clazz, jlon
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toBoolean(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toBoolean(JNIEnv *env, jclass clazz, jlong native_lua,
                                                jint index) {
     lua_State *L =toLuaState(native_lua);
     return lua_toboolean(L,index);
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toBytes(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toBytes(JNIEnv *env, jclass clazz, jlong native_lua,
                                              jint index) {
     lua_State *L =toLuaState(native_lua);
     if(lua_isstring(L,index))
@@ -246,7 +247,7 @@ Java_top_lizhistudio_androidlua_LuaJava_toBytes(JNIEnv *env, jclass clazz, jlong
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toString(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toString(JNIEnv *env, jclass clazz, jlong native_lua,
                                               jint index) {
     lua_State *L =toLuaState(native_lua);
     if(lua_isstring(L,index))
@@ -262,13 +263,13 @@ Java_top_lizhistudio_androidlua_LuaJava_toString(JNIEnv *env, jclass clazz, jlon
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_push__JZ(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_push__JZ(JNIEnv *env, jclass clazz, jlong native_lua,
                                               jboolean v) {
     lua_pushboolean(toLuaState(native_lua),v);
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_push__J_3B(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_push__J_3B(JNIEnv *env, jclass clazz, jlong native_lua,
                                                 jbyteArray v) {
     lua_State *L =toLuaState(native_lua);
     jboolean isCopy = 0;
@@ -279,18 +280,18 @@ Java_top_lizhistudio_androidlua_LuaJava_push__J_3B(JNIEnv *env, jclass clazz, jl
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_pushNil(JNIEnv *env, jclass clazz, jlong native_lua) {
+Java_top_lizhistudio_androidlua_LuaContext_pushNil(JNIEnv *env, jclass clazz, jlong native_lua) {
     lua_pushnil(toLuaState(native_lua));
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_push__JJ(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_push__JJ(JNIEnv *env, jclass clazz, jlong native_lua,
                                               jlong v) {
     lua_pushinteger(toLuaState(native_lua),v);
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_push__JD(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_push__JD(JNIEnv *env, jclass clazz, jlong native_lua,
                                               jdouble v) {
     lua_pushnumber(toLuaState(native_lua),v);
 }
@@ -301,12 +302,12 @@ Java_top_lizhistudio_androidlua_LuaJava_push__JD(JNIEnv *env, jclass clazz, jlon
 
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_type(JNIEnv *env, jclass clazz, jlong native_lua, jint index) {
+Java_top_lizhistudio_androidlua_LuaContext_type(JNIEnv *env, jclass clazz, jlong native_lua, jint index) {
     return lua_type(toLuaState(native_lua),index);
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_isInteger(JNIEnv *env, jclass clazz, jlong native_value,
+Java_top_lizhistudio_androidlua_LuaContext_isInteger(JNIEnv *env, jclass clazz, jlong native_value,
                                                jint index) {
     return lua_isinteger(toLuaState(native_value),index);
 }
@@ -321,7 +322,7 @@ static jobject getJavaObject(JNIEnv *env,jobject context, lua_State*L, int index
 
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_setGlobal(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_setGlobal(JNIEnv *env, jclass clazz, jlong native_lua,
                                                jstring key) {
     lua_State *L = toLuaState(native_lua);
     jboolean isCopy = 0;
@@ -436,7 +437,7 @@ static int luaopen_luajava(lua_State*L)
 }
 
 JNIEXPORT jlong JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_newLuaState(JNIEnv *env, jclass clazz, jobject context) {
+Java_top_lizhistudio_androidlua_LuaContext_newLuaState(JNIEnv *env, jclass clazz, jobject context) {
     LuaExtension * extension = malloc(sizeof(LuaExtension));
     extension->context = (*env)->NewWeakGlobalRef(env,context);
     lua_State *L = luaL_newstate();
@@ -448,7 +449,7 @@ Java_top_lizhistudio_androidlua_LuaJava_newLuaState(JNIEnv *env, jclass clazz, j
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_closeLuaState(JNIEnv *env, jclass clazz, jlong native_lua) {
+Java_top_lizhistudio_androidlua_LuaContext_closeLuaState(JNIEnv *env, jclass clazz, jlong native_lua) {
     lua_State *L = toLuaState(native_lua);
     LuaExtension * extension = GetLuaExtension(native_lua);
     lua_close(L);
@@ -473,7 +474,7 @@ static int luaHandlerCall(lua_State*L)
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_push__JLtop_lizhistudio_androidlua_LuaHandler_2(JNIEnv *env,
+Java_top_lizhistudio_androidlua_LuaContext_push__JLtop_lizhistudio_androidlua_LuaHandler_2(JNIEnv *env,
                                                                                         jclass clazz,
                                                                                         jlong native_lua,
                                                                                         jobject lua_handler) {
@@ -484,14 +485,14 @@ Java_top_lizhistudio_androidlua_LuaJava_push__JLtop_lizhistudio_androidlua_LuaHa
 
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_push__JLtop_lizhistudio_androidlua_JavaObjectWrapper_2(
+Java_top_lizhistudio_androidlua_LuaContext_push__JLtop_lizhistudio_androidlua_JavaObjectWrapper_2(
         JNIEnv *env, jclass clazz, jlong native_lua, jobject object_wrapper) {
     pushJavaObject(env, native_lua, object_wrapper);
     luaL_setmetatable(toLuaState(native_lua), JAVA_WRAPPER_OBJECT_NAME);
 }
 
 JNIEXPORT jobject JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toJavaObject(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toJavaObject(JNIEnv *env, jclass clazz, jlong native_lua,
                                                   jint index) {
     lua_State *L = toLuaState(native_lua);
     jobject context = GetJavaLuaContext(L);
@@ -500,25 +501,25 @@ Java_top_lizhistudio_androidlua_LuaJava_toJavaObject(JNIEnv *env, jclass clazz, 
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_isJavaObjectWrapper(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_isJavaObjectWrapper(JNIEnv *env, jclass clazz,
                                                          jlong native_lua, jint index) {
     lua_State *L = toLuaState(native_lua);
     return luaL_testudata(L, index, JAVA_WRAPPER_OBJECT_NAME) > 0;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getTop(JNIEnv *env, jclass clazz, jlong native_lua) {
+Java_top_lizhistudio_androidlua_LuaContext_getTop(JNIEnv *env, jclass clazz, jlong native_lua) {
     return lua_gettop(toLuaState(native_lua));
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_setTop(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_setTop(JNIEnv *env, jclass clazz, jlong native_lua,
                                             jint index) {
     lua_settop(toLuaState(native_lua),index);
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_pushJavaObjectMethod(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_pushJavaObjectMethod(JNIEnv *env, jclass clazz,
                                                              jlong native_lua) {
     lua_State *L = toLuaState(native_lua);
     if (luaL_testudata(L, -2, JAVA_WRAPPER_OBJECT_NAME))
@@ -547,7 +548,7 @@ static const char* getCodeMode(int t)
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_loadBuffer(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_loadBuffer(JNIEnv *env, jclass clazz, jlong native_lua,
                                                    jbyteArray code, jstring chunk_name,
                                                    jint code_type) {
     jboolean isCopy = 0;
@@ -564,7 +565,7 @@ Java_top_lizhistudio_androidlua_LuaJava_loadBuffer(JNIEnv *env, jclass clazz, jl
 
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_loadFile(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_loadFile(JNIEnv *env, jclass clazz, jlong native_lua,
                                                  jstring file_name, jint code_type) {
     jboolean isCopy = 0;
     const char* codePath = (*env)->GetStringUTFChars(env,file_name,&isCopy);
@@ -575,19 +576,19 @@ Java_top_lizhistudio_androidlua_LuaJava_loadFile(JNIEnv *env, jclass clazz, jlon
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_reference(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_reference(JNIEnv *env, jclass clazz, jlong native_lua,
                                                   jint table_index) {
     return luaL_ref(toLuaState(native_lua),table_index);
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_unReference(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_unReference(JNIEnv *env, jclass clazz, jlong native_lua,
                                                     jint table_index, jint reference) {
     luaL_unref(toLuaState(native_lua),table_index,reference);
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_pCall(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_pCall(JNIEnv *env, jclass clazz, jlong native_lua,
                                               jint arg_number, jint result_number,
                                               jint error_function_index) {
     lua_State *L = toLuaState(native_lua);
@@ -595,7 +596,7 @@ Java_top_lizhistudio_androidlua_LuaJava_pCall(JNIEnv *env, jclass clazz, jlong n
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_pop(JNIEnv *env, jclass clazz, jlong native_lua, jint n) {
+Java_top_lizhistudio_androidlua_LuaContext_pop(JNIEnv *env, jclass clazz, jlong native_lua, jint n) {
     lua_pop(toLuaState(native_lua), n);
 }
 
@@ -607,7 +608,7 @@ lua_Debug * getNativeDebugInfo(JNIEnv*env,jobject debugInfo)
 
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getInfo(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_getInfo(JNIEnv *env, jclass clazz, jlong native_lua,
                                                 jstring what, jobject debug_info) {
     jboolean isCopy = 0;
     const char* cWhat = (*env)->GetStringUTFChars(env,what,&isCopy);
@@ -618,24 +619,24 @@ Java_top_lizhistudio_androidlua_LuaJava_getInfo(JNIEnv *env, jclass clazz, jlong
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getStack(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_getStack(JNIEnv *env, jclass clazz, jlong native_lua,
                                                  jint level, jobject debug_info) {
     lua_Debug* luaDebug = getNativeDebugInfo(env,debug_info);
     return lua_getstack(toLuaState(native_lua),level,luaDebug);
 }
 
 JNIEXPORT jlong JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_newDebugInfo(JNIEnv *env, jclass clazz) {
+Java_top_lizhistudio_androidlua_LuaContext_newDebugInfo(JNIEnv *env, jclass clazz) {
     return (jlong)malloc(sizeof(lua_Debug));
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_releaseDebugInfo(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaContext_releaseDebugInfo(JNIEnv *env, jclass clazz, jlong native_print) {
     free((void*)native_print);
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoName(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoName(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->name == NULL)
         return NULL;
@@ -643,7 +644,7 @@ Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoName(JNIEnv *env, jclass cla
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoNameWhat(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoNameWhat(JNIEnv *env, jclass clazz,
                                                              jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->namewhat == NULL)
@@ -652,7 +653,7 @@ Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoNameWhat(JNIEnv *env, jclass
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoSource(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoSource(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->source == NULL)
         return NULL;
@@ -660,14 +661,14 @@ Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoSource(JNIEnv *env, jclass c
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoShortSource(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoShortSource(JNIEnv *env, jclass clazz,
                                                                 jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return (*env)->NewStringUTF(env,luaDebug->short_src);
 }
 
 JNIEXPORT jstring JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoWhat(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoWhat(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     if (luaDebug->what == NULL)
         return NULL;
@@ -675,61 +676,61 @@ Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoWhat(JNIEnv *env, jclass cla
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoCurrentLine(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoCurrentLine(JNIEnv *env, jclass clazz,
                                                                 jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->currentline;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoLastLineDefined(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoLastLineDefined(JNIEnv *env, jclass clazz,
                                                                     jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->lastlinedefined;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoLineDefined(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoLineDefined(JNIEnv *env, jclass clazz,
                                                                 jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->linedefined;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoParamsSum(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoParamsSum(JNIEnv *env, jclass clazz,
                                                               jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->nparams;
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getDebugInfoUpValueSum(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_getDebugInfoUpValueSum(JNIEnv *env, jclass clazz,
                                                                jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->nups;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_isDebugInfoTailCall(JNIEnv *env, jclass clazz,
+Java_top_lizhistudio_androidlua_LuaContext_isDebugInfoTailCall(JNIEnv *env, jclass clazz,
                                                             jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->istailcall;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_isDebugInfoVarArg(JNIEnv *env, jclass clazz, jlong native_print) {
+Java_top_lizhistudio_androidlua_LuaContext_isDebugInfoVarArg(JNIEnv *env, jclass clazz, jlong native_print) {
     lua_Debug* luaDebug= (lua_Debug*)native_print;
     return luaDebug->isvararg;
 }
 
 JNIEXPORT jlong JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_toPointer(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_toPointer(JNIEnv *env, jclass clazz, jlong native_lua,
                                                   jint index) {
     return (jlong)lua_topointer(toLuaState(native_lua),index);
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getGlobal(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_getGlobal(JNIEnv *env, jclass clazz, jlong native_lua,
                                                   jstring key) {
     jboolean isCopy = 0;
     const char* cKey = (*env)->GetStringUTFChars(env,key,&isCopy);
@@ -740,7 +741,7 @@ Java_top_lizhistudio_androidlua_LuaJava_getGlobal(JNIEnv *env, jclass clazz, jlo
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_setField(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_setField(JNIEnv *env, jclass clazz, jlong native_lua,
                                                  jint table_index, jstring key) {
     jboolean isCopy = 0;
     const char* cKey = (*env)->GetStringUTFChars(env,key,&isCopy);
@@ -750,19 +751,19 @@ Java_top_lizhistudio_androidlua_LuaJava_setField(JNIEnv *env, jclass clazz, jlon
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_setI(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_setI(JNIEnv *env, jclass clazz, jlong native_lua,
                                              jint table_index, jlong n) {
     lua_seti(toLuaState(native_lua),table_index,n);
 }
 
 JNIEXPORT void JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_setTable(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_setTable(JNIEnv *env, jclass clazz, jlong native_lua,
                                                  jint table_index) {
     lua_settable(toLuaState(native_lua),table_index);
 }
 
 JNIEXPORT jint JNICALL
-Java_top_lizhistudio_androidlua_LuaJava_getField(JNIEnv *env, jclass clazz, jlong native_lua,
+Java_top_lizhistudio_androidlua_LuaContext_getField(JNIEnv *env, jclass clazz, jlong native_lua,
                                                  jint table_index, jstring key) {
     jboolean isCopy = 0;
     const char* cKey = (*env)->GetStringUTFChars(env,key,&isCopy);

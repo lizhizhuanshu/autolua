@@ -47,8 +47,6 @@ public class ProjectsFragment extends Fragment {
                 });
             }
         };
-        projectManager.attach(observer);
-
         for (String name: ProjectManagerImplement.getInstance().allProjectName())
         {
             addProjectView(name);
@@ -97,6 +95,11 @@ public class ProjectsFragment extends Fragment {
         projectsView.addView(rowView);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        projectManager.attach(observer);
+    }
 
     @Override
     public void onPause() {

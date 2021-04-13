@@ -1,10 +1,17 @@
 package top.lizhistudio.app.activity;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
+import com.blankj.utilcode.util.UriUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -15,6 +22,7 @@ import androidx.navigation.ui.NavigationUI;
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.debugger.DebuggerServer;
+import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 
 public class MainActivity extends AppCompatActivity {
     private long lastBackPressedTime = 0;
@@ -31,8 +39,35 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
+
+        FloatingActionButton floatingActionButton = findViewById(R.id.add_project);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent,1);
+            }
+        });
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
+            Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。
+            new Thread(){
+                @Override
+                public void run() {
+                    ProjectManagerImplement
+                            .getInstance()
+                            .addProject(UriUtils.uri2File(uri).getAbsolutePath());
+                }
+            }.start();
+        }
+    }
     @Override
     public void onBackPressed() {
         long time = SystemClock.uptimeMillis();

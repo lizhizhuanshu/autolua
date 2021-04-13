@@ -1,5 +1,7 @@
 package top.lizhistudio.app.core;
 
+import android.net.Uri;
+
 import java.io.Serializable;
 import java.util.Set;
 
@@ -8,6 +10,7 @@ import top.lizhistudio.autolua.debugger.proto.Date;
 public interface ProjectManager {
 
     ProjectInfo getInfo(String projectName);
+    void addProject(String path);
     boolean createProject(String projectName,String feature,int version);
     boolean createDirectory(String projectName,String path);
     boolean updateVersion(String projectName,int version);

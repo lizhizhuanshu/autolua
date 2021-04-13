@@ -3,14 +3,20 @@ package top.lizhistudio.app.core.implement;
 import android.content.Context;
 import android.util.Log;
 
+import com.blankj.utilcode.util.FileUtils;
+import com.blankj.utilcode.util.ZipUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 
 import top.lizhistudio.app.util.DeleteFileUtil;
@@ -96,6 +102,43 @@ public class ProjectManagerImplement implements ProjectManager {
         synchronized (projectInfoCache)
         {
             return projectInfoCache.get(projectName);
+        }
+    }
+
+    private boolean isZipWrap(File file,String projectName) throws IOException
+    {
+        projectName += "/";
+        ZipFile zipFile = new ZipFile(file);
+        Enumeration<?> enumeration = zipFile.entries();
+        if (!enumeration.hasMoreElements())
+            return false;
+        ZipEntry zipEntry = (ZipEntry) enumeration.nextElement();
+        return zipEntry.isDirectory() && zipEntry.getName().equals(projectName);
+    }
+
+    private void addProjectByFile(File file) {
+        String projectName = file.getName().substring(0,file.getName().length()-4);
+        try{
+            if (isZipWrap(file,projectName))
+            {
+                ZipUtils.unzipFile(file,new File(projectPath));
+            }else
+            {
+                ZipUtils.unzipFile(file,new File(projectPath,projectName));
+            }
+            createProject(projectName,"",0);
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void addProject(String path) {
+        File file = new File(path);
+        if (file.exists() && file.isFile())
+        {
+            addProjectByFile(file);
         }
     }
 

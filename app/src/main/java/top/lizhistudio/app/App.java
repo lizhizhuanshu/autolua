@@ -12,6 +12,8 @@ import com.immomo.mls.fun.lt.SIApplication;
 
 import org.luaj.vm2.Globals;
 
+import java.util.Random;
+
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.app.core.implement.UserInterfaceImplement;
 import top.lizhistudio.app.core.implement.UserdataUI;
@@ -40,6 +42,11 @@ public class App extends Application {
         }
     }
 
+    private static int random(int min,int max)
+    {
+        Random random = new  Random();
+        return random.nextInt(max) % (max-min+1) + min;
+    }
 
     private void initializeAutoLuaEngine()
     {
@@ -47,6 +54,10 @@ public class App extends Application {
         autoLuaEngine.getStartConfig()
                 .setProcessPrint(true)
                 .setPackagePath(this.getPackageCodePath());
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+        {
+            autoLuaEngine.getStartConfig().setServiceAddress(random(1995,2002));
+        }
         autoLuaEngine.attach(new EngineObserver());
         autoLuaEngine.register(BaseLuaContextFactory.AUTO_LUA_UI_NAME,
                 UserInterface.class,

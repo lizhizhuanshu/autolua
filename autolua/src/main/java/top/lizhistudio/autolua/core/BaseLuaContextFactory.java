@@ -52,7 +52,6 @@ public class BaseLuaContextFactory implements LuaContextFactory{
 
     @Override
     public LuaContext newInstance() {
-
         LuaContext luaContext = new LuaContext(javaObjectWrapperFactory);
         try{
             if (clientHandler.hasService(AUTO_LUA_UI_NAME))

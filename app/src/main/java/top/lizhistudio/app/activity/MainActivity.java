@@ -3,6 +3,7 @@ package top.lizhistudio.app.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -18,6 +19,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.R;
@@ -52,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -61,9 +65,25 @@ public class MainActivity extends AppCompatActivity {
             new Thread(){
                 @Override
                 public void run() {
+                    File file = UriUtils.uri2File(uri);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    {
+                        String name = file.getName();
+                        File newFile = new File(getCacheDir(),name);
+                        try{
+                            FileOutputStream outputStream = new FileOutputStream(newFile);
+                            outputStream.write(UriUtils.uri2Bytes(uri));
+                            outputStream.flush();
+                            outputStream.close();
+                        }catch (IOException e)
+                        {
+                            e.printStackTrace();
+                        }
+                        file = newFile;
+                    }
                     ProjectManagerImplement
                             .getInstance()
-                            .addProject(UriUtils.uri2File(uri).getAbsolutePath());
+                            .addProject(file.getAbsolutePath());
                 }
             }.start();
         }

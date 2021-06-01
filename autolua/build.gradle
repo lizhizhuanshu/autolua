@@ -20,7 +20,7 @@ android {
             cmake {
                 cppFlags "-frtti -fexceptions"
                 cFlags "-pie -fPIE"
-                abiFilters 'armeabi-v7a', 'arm64-v8a','x86'
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
             }
         }
     }

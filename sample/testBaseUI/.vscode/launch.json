@@ -6,9 +6,17 @@
     "configurations": [
         {
             "type": "AutoLuaDebugger",
-            "name": "192.168.1.136",
+            "name": "192.168.1.154",
             "request": "launch",
-            "ip": "192.168.1.149",
+            "ip": "192.168.1.154",
+            "port": 8888,
+            "startFile": "${file}"
+        },
+        {
+            "type": "AutoLuaDebugger",
+            "name": "192.168.1.167",
+            "request": "launch",
+            "ip": "192.168.1.167",
             "port": 7777,
             "startFile": "${file}"
         },

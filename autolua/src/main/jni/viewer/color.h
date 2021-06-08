@@ -106,12 +106,14 @@ public:
 		return mData == color;
 	}
 
-
-
-    template<class T>
-    int equal(const unsigned char* color,T shiftColor)
+    int equal(const unsigned char* color,Color shiftColor)
     {
-        return compareColor((const unsigned char*)&mData,color,shiftColor);
+        return compareColor((const unsigned char*)&mData,color,(const unsigned  char*)&shiftColor);
+    }
+
+    int equal(const unsigned  char* color,int shiftColorSum)
+    {
+        return compareColor((const unsigned char*)&mData,color,shiftColorSum);
     }
 };
 
@@ -134,6 +136,12 @@ public:
     StringViewColor(std::string_view & color)
         :mData(color)
     {}
+
+    int equal(const unsigned  char* color ,Color shiftColor)
+    {
+        return compareColor(color,&mData,(const unsigned char*)&shiftColor);
+    }
+
 
     int equal(const unsigned char* color,int shiftColor)
     {

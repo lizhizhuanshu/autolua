@@ -59,6 +59,7 @@ public class LuaContext {
 
 
     static {
+        System.loadLibrary("lua");
         System.loadLibrary("luajava");
     }
 

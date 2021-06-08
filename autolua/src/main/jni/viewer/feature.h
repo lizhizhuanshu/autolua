@@ -1,6 +1,5 @@
-#include "base.h"
 #include<string>
-
+#include "color.h"
 
 static size_t computeStringColorSize(const char* color)
 {

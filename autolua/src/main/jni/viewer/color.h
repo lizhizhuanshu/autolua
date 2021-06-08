@@ -1,3 +1,5 @@
+#ifndef AUTO_LUA_COLOR_H
+#define AUTO_LUA_COLOR_H
 #include"base.h"
 #include<memory>
 #include<string>
@@ -70,41 +72,41 @@ static int compareColor(const unsigned char* color, std::string_view* color1, in
 class Color
 {
 protected:
-	int mData;
+    int mData;
 public:
-	Color()
-		:mData(0)
-	{}
+    Color()
+            :mData(0)
+    {}
 
-	Color(int color)
-		:mData(color)
-	{}
+    Color(int color)
+            :mData(color)
+    {}
 
-	Color(const unsigned char* color)
-		:mData(0)
-	{
-		memcpy(&mData, color, 3);
-	}
+    Color(const unsigned char* color)
+            :mData(0)
+    {
+        memcpy(&mData, color, 3);
+    }
 
-	operator int()
-	{
-		return mData;
-	}
+    operator int()
+    {
+        return mData;
+    }
 
-	int operator == (const Color& other)
-	{
-		return mData == other.mData;
-	}
+    int operator == (const Color& other)
+    {
+        return mData == other.mData;
+    }
 
-	int operator == (const int other)
-	{
-		return mData == other;
-	}
+    int operator == (const int other)
+    {
+        return mData == other;
+    }
 
-	int equal(int color)
-	{
-		return mData == color;
-	}
+    int equal(int color)
+    {
+        return mData == color;
+    }
 
     int equal(const unsigned char* color,Color shiftColor)
     {
@@ -124,17 +126,20 @@ static int compareColor(const unsigned char* color, const unsigned char* color1,
     return compareColor(color,color1,(unsigned  char*)&colorShift);
 }
 
-
+static int compareColor(const unsigned char* color, std::string_view* color1, Color shift)
+{
+    return compareColor(color,color1,(unsigned  char*)&shift);
+}
 
 class StringViewColor
 {
     std::string_view mData;
 public:
     StringViewColor(const char* str,size_t size)
-        :mData(str,size)
+            :mData(str,size)
     {}
     StringViewColor(std::string_view & color)
-        :mData(color)
+            :mData(color)
     {}
 
     int equal(const unsigned  char* color ,Color shiftColor)
@@ -157,10 +162,11 @@ public:
 
 struct Pixel
 {
-	unsigned char r;
-	unsigned char g;
-	unsigned char b;
-	unsigned char o;
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char o;
 };
+#endif
 
 

@@ -60,9 +60,9 @@ end
 ---
 ---  设置字体大小
 ---
----@param size number  文字大小
+---@param stringSize number  文字大小
 ---@return Label 
-function _class:fontSize(size)
+function _class:fontSize(stringSize)
 	return self
 end
 
@@ -179,9 +179,9 @@ end
 ---  设置自定义字体
 ---
 ---@param name string  字体名称
----@param size number  字体大小
+---@param stringSize number  字体大小
 ---@return Label 
-function _class:fontNameSize(name, size)
+function _class:fontNameSize(name, stringSize)
 	return self
 end
 
@@ -270,9 +270,9 @@ end
 ---
 ---  view宽度，可设置MeasurementType的枚举值（SDK>=1.0.5）, 默认是MeasurementType.WRAP_CONTENT
 ---
----@param size number  宽度值
+---@param stringSize number  宽度值
 ---@return Label 
-function _class:width(size)
+function _class:width(stringSize)
 	return self
 end
 
@@ -293,9 +293,9 @@ end
 ---
 ---  view高度，可设置MeasurementType的枚举值（SDK>=1.0.5， 默认是MeasurementType.WRAP_CONTENT
 ---
----@param size number  高度值
+---@param stringSize number  高度值
 ---@return Label 
-function _class:height(size)
+function _class:height(stringSize)
 	return self
 end
 

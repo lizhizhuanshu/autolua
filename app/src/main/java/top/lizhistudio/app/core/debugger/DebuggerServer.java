@@ -2,8 +2,6 @@ package top.lizhistudio.app.core.debugger;
 
 
 
-import android.util.Log;
-
 import com.immomo.mls.MLSEngine;
 import com.immomo.mls.global.LVConfigBuilder;
 
@@ -16,10 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
-import top.lizhistudio.autolua.core.AutoLuaEngine;
-import top.lizhistudio.autolua.core.BaseLuaContextFactory;
-import top.lizhistudio.autolua.core.LuaInterpreter;
-import top.lizhistudio.autolua.core.PrintListener;
 import top.lizhistudio.autolua.debugger.proto.DebugMessage;
 import top.lizhistudio.autolua.rpc.Callback;
 
@@ -114,8 +108,8 @@ public class DebuggerServer extends Observable {
     private void onExecuteFile(String projectName,String path)
     {
         ProjectManager projectManager = ProjectManagerImplement.getInstance();
-        AutoLuaEngine autoLuaEngine = App.getApp().getAutoLuaEngine();
-        LuaInterpreter interpreter = autoLuaEngine.getInterpreter();
+        AutoLuaEngineImplement2 autoLuaEngineImplement2 = App.getApp().getAutoLuaEngineImplement2();
+        LuaInterpreter interpreter = autoLuaEngineImplement2.getInterpreter();
         if (interpreter != null && !interpreter.isRunning())
         {
             String projectPath = projectManager.getProjectPath(projectName);
@@ -129,7 +123,7 @@ public class DebuggerServer extends Observable {
                         .setGlobalResourceDir(projectPath+"/resource").build());
                 //此处需要注意
                 rootPath = projectPath;
-                autoLuaEngine.register(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME,PrintListener.class,printListener);
+                autoLuaEngineImplement2.register(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME,PrintListener.class,printListener);
                 interpreter.reset();
                 interpreter.setLoadScriptPath(projectPath);
                 interpreter.executeFile(projectPath + "/" + path, new Callback() {
@@ -137,12 +131,12 @@ public class DebuggerServer extends Observable {
                     public void onCompleted(Object result) {
                         //Log.d(TAG,result.toString());
                         sendStopped();
-                        autoLuaEngine.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
+                        autoLuaEngineImplement2.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
                     }
                     @Override
                     public void onError(Throwable throwable) {
                         sendStopped();
-                        autoLuaEngine.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
+                        autoLuaEngineImplement2.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
                         if (throwable != null)
                         {
                             throwable.printStackTrace();
@@ -171,14 +165,14 @@ public class DebuggerServer extends Observable {
 
     private void onHandler(DebugMessage.Message message)
     {
-        AutoLuaEngine autoLuaEngine = App.getApp().getAutoLuaEngine();
+        AutoLuaEngineImplement2 autoLuaEngineImplement2 = App.getApp().getAutoLuaEngineImplement2();
         ProjectManager projectManager = ProjectManagerImplement.getInstance();
         switch (message.getMethod())
         {
             case UNKNOWN:
                 break;
             case INTERRUPT:
-                autoLuaEngine.getInterpreter().interrupt();
+                autoLuaEngineImplement2.getInterpreter().interrupt();
                 break;
             case EXECUTE_FILE:
                 onExecuteFile(message.getName(),message.getPath());
@@ -232,7 +226,7 @@ public class DebuggerServer extends Observable {
                 }catch (IOException e)
                 {
                     e.printStackTrace();
-                    App.getApp().getAutoLuaEngine().getInterpreter().interrupt();
+                    App.getApp().getAutoLuaEngineImplement2().getInterpreter().interrupt();
                 }finally {
                     transport.close();
                     transport = null;

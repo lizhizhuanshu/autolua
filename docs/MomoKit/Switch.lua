@@ -103,9 +103,9 @@ end
 ---
 ---  view宽度，可设置MeasurementType的枚举值（SDK>=1.0.5）, 默认是MeasurementType.WRAP_CONTENT
 ---
----@param size number  宽度值
+---@param stringSize number  宽度值
 ---@return Switch 
-function _class:width(size)
+function _class:width(stringSize)
 	return self
 end
 
@@ -126,9 +126,9 @@ end
 ---
 ---  view高度，可设置MeasurementType的枚举值（SDK>=1.0.5， 默认是MeasurementType.WRAP_CONTENT
 ---
----@param size number  高度值
+---@param stringSize number  高度值
 ---@return Switch 
-function _class:height(size)
+function _class:height(stringSize)
 	return self
 end
 

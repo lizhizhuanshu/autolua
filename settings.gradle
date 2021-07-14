@@ -1,4 +1,3 @@
 include ':autolua'
-include ':androidlua'
 include ':app'
 rootProject.name = "autolua"

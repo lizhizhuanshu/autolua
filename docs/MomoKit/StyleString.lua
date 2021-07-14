@@ -156,10 +156,10 @@ end
 ---
 ---  以Image的形式展示，前提是当前内容为图片网络路径或本地路径，且以图片形式展示后，背景色，下划线，字体等样式无法设置
 ---
----@param size Size  图片大小
+---@param stringSize Size  图片大小
 ---@return boolean 返回图片是否设置成功
 ---@note  使用场景：用于向字符串中间插入图片进行展示
-function _class:showAsImage(size)
+function _class:showAsImage(stringSize)
 	return true
 end
 

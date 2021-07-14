@@ -8,7 +8,6 @@ import com.immomo.mls.global.LVConfigBuilder;
 
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.app.view.FloatControllerView;
-import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.rpc.Callback;
 
 public class FloatControllerListener implements FloatControllerView.OnClickListener {
@@ -20,7 +19,7 @@ public class FloatControllerListener implements FloatControllerView.OnClickListe
 
     @Override
     public void onClick(FloatControllerView floatControllerView, int state) {
-        LuaInterpreter luaInterpreter = App.getApp().getAutoLuaEngine().getInterpreter();
+        LuaInterpreter luaInterpreter = App.getApp().getAutoLuaEngineImplement2().getInterpreter();
         if (luaInterpreter == null)
         {
             Toast.makeText(App.getApp(),"错误的脚本执行环境，无法执行脚本",Toast.LENGTH_LONG)

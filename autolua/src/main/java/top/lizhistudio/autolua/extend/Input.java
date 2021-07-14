@@ -67,14 +67,14 @@ public class Input {
         Pointer pointer = pointersState.newPointer();
         if (pointer != null)
         {
-            pointer.getPoint().x = (float)context.toNumber(2);
-            pointer.getPoint().y = (float)context.toNumber(3);
-            if (context.type(4) == LuaContext.LUA_TNUMBER)
-                pointer.setMajor((float)context.toNumber(4));
-            if (context.type(5) == LuaContext.LUA_TNUMBER)
-                pointer.setMinor((float)context.toNumber(5));
-            if (context.type(6) == LuaContext.LUA_TNUMBER)
-                pointer.setPressure((float)context.toNumber(6));
+            pointer.getPoint().x = (float)context.toDouble(2);
+            pointer.getPoint().y = (float)context.toDouble(3);
+            if (context.type(4) == LuaContext.VALUE_TYPE.NUMBER.getCode())
+                pointer.setMajor((float)context.toDouble(4));
+            if (context.type(5) == LuaContext.VALUE_TYPE.NUMBER.getCode())
+                pointer.setMinor((float)context.toDouble(5));
+            if (context.type(6) == LuaContext.VALUE_TYPE.NUMBER.getCode())
+                pointer.setPressure((float)context.toDouble(6));
             int index = pointersState.getPointerIndex(pointer.getLocalId());
             if(updateTouch(MotionEvent.ACTION_DOWN,index,0))
             {
@@ -95,19 +95,19 @@ public class Input {
     @LuaMethod
     public int touchMove(LuaContext context)
     {
-        int id = (int)context.toInteger(2);
+        int id = (int)context.toLong(2);
         int index = pointersState.getPointerIndex(id);
         if (index >=0)
         {
             Pointer pointer = pointersState.get(index);
-            pointer.getPoint().x = (float)context.toNumber(3);
-            pointer.getPoint().y = (float)context.toNumber(4);
-            if (context.type(5) == LuaContext.LUA_TNUMBER)
-                pointer.setMajor((float)context.toNumber(5));
-            if (context.type(6) == LuaContext.LUA_TNUMBER)
-                pointer.setMinor((float)context.toNumber(6));
-            if (context.type(7) == LuaContext.LUA_TNUMBER)
-                pointer.setPressure((float)context.toNumber(7));
+            pointer.getPoint().x = (float)context.toDouble(3);
+            pointer.getPoint().y = (float)context.toDouble(4);
+            if (context.type(5) == LuaContext.VALUE_TYPE.NUMBER.getCode())
+                pointer.setMajor((float)context.toDouble(5));
+            if (context.type(6) == LuaContext.VALUE_TYPE.NUMBER.getCode())
+                pointer.setMinor((float)context.toDouble(6));
+            if (context.type(7) == LuaContext.VALUE_TYPE.NUMBER.getCode())
+                pointer.setPressure((float)context.toDouble(7));
             boolean result = updateTouch(MotionEvent.ACTION_MOVE,index,0);
             context.push(result);
             if(!result)
@@ -123,7 +123,7 @@ public class Input {
     @LuaMethod
     public int touchUp(LuaContext context)
     {
-        int id = (int)context.toInteger(2);
+        int id = (int)context.toLong(2);
         int index = pointersState.getPointerIndex(id);
         Pointer pointer = pointersState.get(index);
         pointer.setUp(true);

@@ -45,9 +45,9 @@ end
 ---
 ---  设置宽高
 ---
----@param size Size  包含宽和高，详情见[Size](Size)
+---@param stringSize Size  包含宽和高，详情见[Size](Size)
 ---@return Rect 
-function _class:size(size)
+function _class:stringSize(stringSize)
 	return self
 end
 
@@ -55,7 +55,7 @@ end
 ---  获取宽高，详情见[Size](Size)
 ---
 ---@return Size 宽高，详情见[Size](Size)
-function _class:size()
+function _class:stringSize()
 	return Size()
 end
 

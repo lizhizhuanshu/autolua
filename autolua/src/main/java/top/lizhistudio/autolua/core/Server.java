@@ -90,55 +90,49 @@ public class Server {
     }
 
 
-    private static LuaContextFactory createLuaContextFactory(String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-        Class<?>aClass = Class.forName(className);
-        return (LuaContextFactory)aClass.newInstance();
-    }
-
-
     public static void main(String[] args)
     {
-        Options options = new Options();
-        options.addOption("p","port",true,"server port");
-        options.addOption("l","local-server",true,"local server feature");
-        options.addOption("h","help",false,"print options");
-        options.addOption("v","verify",true,"verify password");
-        options.addOption("f","factory",true,"lua context factory");
-        try{
-            CommandLine commandLine = new DefaultParser().parse(options,args);
-            if (commandLine.hasOption('h'))
-            {
-                HelpFormatter helpFormatter = new HelpFormatter();
-                helpFormatter.printHelp("options",options);
-            }else
-            {
-                IServerSocket serverSocket;
-                if (commandLine.hasOption('p'))
-                    serverSocket = new IServerSocket.NetSocketServer(Integer.parseInt(commandLine.getOptionValue('p')));
-                else
-                    serverSocket = new IServerSocket.LocalSocketServer(commandLine.getOptionValue('l'));
-                Transport transport = new ServerTransport(serverSocket,
-                        new PasswordProcurator( commandLine.getOptionValue('v')));
-                ClientHandler clientHandler = new ClientHandler(transport);
-                ServiceHandler serviceHandler = new ServiceHandler(transport);
-                self = new Server(transport,clientHandler,serviceHandler);
-                LuaContextFactory luaContextFactory;
-                if (commandLine.hasOption('f'))
-                    luaContextFactory = createLuaContextFactory(commandLine.getOptionValue('f'));
-                else
-                    luaContextFactory = new BaseLuaContextFactory();
-                LuaInterpreter luaInterpreter = new LuaInterpreterImplement(luaContextFactory);
-                serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
-                System.out.println(1);
-                self.serve();
-                System.exit(0);
-            }
-        }catch (Throwable e)
-        {
-            e.printStackTrace(System.err);
-            e.printStackTrace(System.out);
-            System.out.println(0);
-        }
+//        Options options = new Options();
+//        options.addOption("p","port",true,"server port");
+//        options.addOption("l","local-server",true,"local server feature");
+//        options.addOption("h","help",false,"print options");
+//        options.addOption("v","verify",true,"verify password");
+//        options.addOption("f","factory",true,"lua context factory");
+//        try{
+//            CommandLine commandLine = new DefaultParser().parse(options,args);
+//            if (commandLine.hasOption('h'))
+//            {
+//                HelpFormatter helpFormatter = new HelpFormatter();
+//                helpFormatter.printHelp("options",options);
+//            }else
+//            {
+//                IServerSocket serverSocket;
+//                if (commandLine.hasOption('p'))
+//                    serverSocket = new IServerSocket.NetSocketServer(Integer.parseInt(commandLine.getOptionValue('p')));
+//                else
+//                    serverSocket = new IServerSocket.LocalSocketServer(commandLine.getOptionValue('l'));
+//                Transport transport = new ServerTransport(serverSocket,
+//                        new PasswordProcurator( commandLine.getOptionValue('v')));
+//                ClientHandler clientHandler = new ClientHandler(transport);
+//                ServiceHandler serviceHandler = new ServiceHandler(transport);
+//                self = new Server(transport,clientHandler,serviceHandler);
+//                LuaContextFactory luaContextFactory;
+//                if (commandLine.hasOption('f'))
+//                    luaContextFactory = createLuaContextFactory(commandLine.getOptionValue('f'));
+//                else
+//                    luaContextFactory = new BaseLuaContextFactory();
+//                LuaInterpreter luaInterpreter = new LuaInterpreterImplement(luaContextFactory);
+//                serviceHandler.register(AUTO_LUA_SERVICE_NAME,LuaInterpreter.class,luaInterpreter);
+//                System.out.println(1);
+//                self.serve();
+//                System.exit(0);
+//            }
+//        }catch (Throwable e)
+//        {
+//            e.printStackTrace(System.err);
+//            e.printStackTrace(System.out);
+//            System.out.println(0);
+//        }
     }
 
     public static Server getInstance()

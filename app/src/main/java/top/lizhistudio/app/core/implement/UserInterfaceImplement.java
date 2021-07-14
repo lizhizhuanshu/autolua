@@ -3,7 +3,6 @@ package top.lizhistudio.app.core.implement;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
-import android.service.controls.Control;
 import android.util.Log;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -17,8 +16,6 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
-
-import top.lizhistudio.autolua.core.UserInterface;
 
 public class UserInterfaceImplement implements UserInterface {
     private static final String TAG = "UI";

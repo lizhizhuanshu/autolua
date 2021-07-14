@@ -5,12 +5,19 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../libs/${ANDROID_ABI})
 add_definitions(-DLUA_DL_DLOPEN -DLUA_COMPAT_5_3 -DLUA_USE_LINUX)
 
 #设置头文件搜索路径（和此txt同个路径的头文件无需设置）
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../../../../androidlua/src/main/jni/lua)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
-
-LINK_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../../../../androidlua/src/main/libs/${ANDROID_ABI})
-
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/viewer)
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lua)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/display)
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/view)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/thread)
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/autolua)
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/input)
+
+add_library(autolua SHARED ./autolua.cpp)
+
+target_link_libraries(autolua
+        lua
+        display
+        view
+        thread
+        input)

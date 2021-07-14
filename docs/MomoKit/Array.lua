@@ -164,7 +164,7 @@ end
 ---  获取元素个数
 ---
 ---@return number 返回元素个数
-function _class:size()
+function _class:stringSize()
 	return 0
 end
 

@@ -41,7 +41,7 @@ public class PointersState {
         }
         int localId = nextUnusedLocalId();
         if (localId == -1) {
-            throw new AssertionError("pointers.size() < maxFingers implies that a local id is available");
+            throw new AssertionError("pointers.stringSize() < maxFingers implies that a local id is available");
         }
         Pointer pointer = new Pointer(localId);
         pointers.add(pointer);

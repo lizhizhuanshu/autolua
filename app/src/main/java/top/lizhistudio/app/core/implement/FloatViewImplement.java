@@ -10,8 +10,6 @@ import com.immomo.mls.utils.MainThreadExecutor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import top.lizhistudio.autolua.core.UserInterface;
-
 public class FloatViewImplement implements UserInterface.FloatView {
     private final static int DESTROYED = 0;
     private final static int CONCEAL = 1;

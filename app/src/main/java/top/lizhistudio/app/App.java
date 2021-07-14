@@ -17,27 +17,23 @@ import java.util.Random;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.app.core.implement.UserInterfaceImplement;
 import top.lizhistudio.app.core.implement.UserdataUI;
-import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.app.provider.GlideImageProvider;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
-import top.lizhistudio.autolua.core.BaseLuaContextFactory;
-import top.lizhistudio.autolua.core.BasePrintListener;
-import top.lizhistudio.autolua.core.UserInterface;
 
 
 public class App extends Application {
     private static App app;
     private FloatControllerView floatControllerView;
-    private AutoLuaEngine autoLuaEngine;
+    private AutoLuaEngineImplement2 autoLuaEngineImplement2;
 
-    private static class EngineObserver implements AutoLuaEngine.Observer
+    private static class EngineObserver implements AutoLuaEngineImplement2.Observer
     {
         @Override
-        public void onUpdate(AutoLuaEngine.STATE state) {
-            if (state == AutoLuaEngine.STATE.RUNNING)
+        public void onUpdate(AutoLuaEngineImplement2.STATE state) {
+            if (state == AutoLuaEngineImplement2.STATE.RUNNING)
                 getApp().startService(new Intent(getApp(), MainService.class));
-            else if(state == AutoLuaEngine.STATE.STOP)
+            else if(state == AutoLuaEngineImplement2.STATE.STOP)
                 getApp().stopService(new Intent(getApp(),MainService.class));
         }
     }
@@ -50,16 +46,16 @@ public class App extends Application {
 
     private void initializeAutoLuaEngine()
     {
-        autoLuaEngine = new AutoLuaEngine();
-        autoLuaEngine.getStartConfig()
+        autoLuaEngineImplement2 = new AutoLuaEngineImplement2();
+        autoLuaEngineImplement2.getStartConfig()
                 .setProcessPrint(true)
                 .setPackagePath(this.getPackageCodePath());
         if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
         {
-            autoLuaEngine.getStartConfig().setServiceAddress(random(1995,2002));
+            autoLuaEngineImplement2.getStartConfig().setServiceAddress(random(1995,2002));
         }
-        autoLuaEngine.attach(new EngineObserver());
-        autoLuaEngine.register(BaseLuaContextFactory.AUTO_LUA_UI_NAME,
+        autoLuaEngineImplement2.attach(new EngineObserver());
+        autoLuaEngineImplement2.register(BaseLuaContextFactory.AUTO_LUA_UI_NAME,
                 UserInterface.class,
                 UserInterfaceImplement.getDefault());
     }
@@ -115,9 +111,9 @@ public class App extends Application {
         return floatControllerView;
     }
 
-    public AutoLuaEngine getAutoLuaEngine()
+    public AutoLuaEngineImplement2 getAutoLuaEngineImplement2()
     {
-        return autoLuaEngine;
+        return autoLuaEngineImplement2;
     }
 }
 

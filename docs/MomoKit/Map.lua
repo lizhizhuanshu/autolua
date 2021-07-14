@@ -141,7 +141,7 @@ end
 ---  获取键值对数量
 ---
 ---@return number 
-function _class:size()
+function _class:stringSize()
 	return 0
 end
 

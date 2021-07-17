@@ -35,11 +35,6 @@ public class UserdataUI {
             else
                 signal[i] = null;
         }
-        try{
-            UserInterfaceImplement.getDefault().putSignal(signal);
-        }catch (InterruptedException e)
-        {
 
-        }
     }
 }

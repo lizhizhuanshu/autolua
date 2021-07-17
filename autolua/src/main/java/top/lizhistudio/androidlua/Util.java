@@ -1,5 +1,6 @@
 package top.lizhistudio.androidlua;
 
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -36,5 +37,38 @@ public class Util {
         }
         return builder.deleteCharAt(builder.length()-1)
                 .append("}").toString();
+    }
+
+    public static String luaValueToString(LuaContext context,int index)
+    {
+        switch (LuaContext.VALUE_TYPE.valueOf( context.type(index)))
+        {
+            case NONE:
+            case NIL:
+                return "nil";
+            case BOOLEAN:
+                return String.valueOf(context.toBoolean(index));
+            case LIGHT_USERDATA:
+                return "lightUserdata@"+context.toPointer(index);
+            case NUMBER:
+                if (context.isInteger(index))
+                    return String.valueOf(context.toLong(index));
+                return String.valueOf(context.toDouble(index));
+            case STRING:
+                return context.toString(index);
+            case TABLE:
+                return "table@"+context.toPointer(index);
+            case FUNCTION:
+                return "function@"+context.toPointer(index);
+            case USERDATA: {
+                if (context.isLuaObjectAdapter(index))
+                    return "LuaObjectAdapter@" + context.toPointer(index);
+                else
+                    return "userdata@" + context.toPointer(index);
+            }
+            case THREAD:
+                return "thread@"+context.toPointer(index);
+        }
+        return "unknown";
     }
 }

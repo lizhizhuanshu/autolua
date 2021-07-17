@@ -1,4 +1,4 @@
-package top.lizhistudio.autolua.core;
+package top.lizhistudio.autolua.core.value;
 
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.exception.LuaTypeError;
@@ -33,7 +33,7 @@ public abstract class LuaValue {
     public boolean toBoolean() {
         throw new LuaTypeError("don't to boolean");
     }
-    public byte[] getBytes(){
+    public byte[] toBytes(){
         throw new LuaTypeError("don't to bytes");
     }
     public String toString(){

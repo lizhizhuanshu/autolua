@@ -1,6 +1,7 @@
 package top.lizhistudio.autolua.core;
 
 import top.lizhistudio.androidlua.LuaContext;
+import top.lizhistudio.autolua.core.value.LuaValue;
 
 public interface LuaInterpreter {
     LuaValue[] execute(byte[] code, String chunkName, LuaContext.CODE_TYPE code_type);

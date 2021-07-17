@@ -5,4 +5,8 @@ public class LuaRuntimeError extends LuaError{
     {
         super(message);
     }
+    public LuaRuntimeError(Throwable throwable)
+    {
+        super(throwable);
+    }
 }

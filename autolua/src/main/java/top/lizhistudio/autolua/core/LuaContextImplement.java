@@ -3,20 +3,24 @@ package top.lizhistudio.autolua.core;
 
 import android.util.LongSparseArray;
 
-import androidx.annotation.NonNull;
 
 
 import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.androidlua.LuaHandler;
+import top.lizhistudio.androidlua.LuaFunctionAdapter;
 import top.lizhistudio.androidlua.LuaObjectAdapter;
 import top.lizhistudio.androidlua.annotation.NativeLuaUseMethod;
 import top.lizhistudio.androidlua.exception.LuaTypeError;
 
-class LuaContextImplement implements LuaContext {
+public class LuaContextImplement implements LuaContext {
     private static final String TAG = "LuaContext";
     private long nativeLua;
     private final LongSparseArray<Object> objectCache;
 
+    static {
+        System.loadLibrary("autolua");
+    }
+
+    static native void injectAutoLua(long nativeLua,boolean isGlobal);
 
     static native long newLuaState(LuaContextImplement context);
     static native void closeLuaState(long nativeLua);
@@ -35,7 +39,7 @@ class LuaContextImplement implements LuaContext {
     static native void pushNil(long nativeLua);
 
     static native void push(long nativeLua, LuaObjectAdapter objectWrapper);
-    static native void push(long nativeLua, LuaHandler luaHandler);
+    static native void push(long nativeLua, LuaFunctionAdapter luaFunctionAdapter);
 
 
     static native void loadBuffer(long nativeLua,byte[] code,String chunkName,int codeType);
@@ -52,10 +56,11 @@ class LuaContextImplement implements LuaContext {
     static native void setTop(long nativeLua,int index);
     static native void setTable(long nativeLua,int tableIndex);
     static native int getTable(long nativeLua,int tableIndex);
+    static native void rawSet(long nativeLua,int tableIndex);
+    static native int rawGet(long nativeLua,int tableIndex);
+    static native void setGlobal(long nativeLua,String key);
+    static native int getGlobal(long nativeLua,String key);
     static native void pop(long nativeLua, int n);
-
-
-
 
 
     public LuaContextImplement()
@@ -64,6 +69,10 @@ class LuaContextImplement implements LuaContext {
         objectCache = new LongSparseArray<>();
     }
 
+    public void injectAutoLua(boolean isGlobal)
+    {
+        injectAutoLua(nativeLua,isGlobal);
+    }
 
     public long toPointer(int index)
     {
@@ -99,13 +108,9 @@ class LuaContextImplement implements LuaContext {
         return toLuaObjectAdapter(nativeLua,index);
     }
 
-    private void throwTypeError(int index)
-    {
-        throw new LuaTypeError("lua "+nativeLua+" index "+index+" can't to Java Object");
-    }
 
-    public void push(LuaHandler luaHandler) {
-        push(nativeLua,luaHandler);
+    public void push(LuaFunctionAdapter luaFunctionAdapter) {
+        push(nativeLua, luaFunctionAdapter);
     }
 
     @Override
@@ -180,6 +185,7 @@ class LuaContextImplement implements LuaContext {
         {
             closeLuaState(nativeLua);
             nativeLua = 0;
+            objectCache.clear();
         }
     }
 
@@ -208,46 +214,30 @@ class LuaContextImplement implements LuaContext {
         setTable(nativeLua,tableIndex);
     }
 
+    @Override
+    public int getGlobal(String key) {
+        return getGlobal(nativeLua,key);
+    }
+
+    @Override
+    public void setGlobal(String key) {
+        setGlobal(nativeLua,key);
+    }
+
+    @Override
+    public int rawGet(int tableIndex) {
+        return rawGet(nativeLua,tableIndex);
+    }
+
+    @Override
+    public void rawSet(int tableIndex) {
+        rawSet(nativeLua,tableIndex);
+    }
+
     public int getTable(int tableIndex)
     {
         return getTable(nativeLua,tableIndex);
     }
-
-    public long getNativeLua()
-    {
-        return nativeLua;
-    }
-
-
-//    public String coerceToString(int index)
-//    {
-//        switch (type(index))
-//        {
-//            case LUA_TNONE:
-//            case LUA_TNIL:return "nil";
-//            case LUA_TBOOLEAN:return String.valueOf(toBoolean(index));
-//            case LUA_TFUNCTION:return "function@"+toPointer(index);
-//            case LUA_TLIGHTUSERDATA:return "lightUserdata@"+toPointer(index);
-//            case LUA_TNUMBER:{
-//                if (isInteger(index))
-//                {
-//                    return String.valueOf(toInteger(index));
-//                }
-//                return String.valueOf(toNumber(index));
-//            }
-//            case LUA_TSTRING:return toString(index);
-//            case LUA_TTABLE:return "table@"+toPointer(index);
-//            case LUA_TTHREAD:return "thread@"+toPointer(index);
-//            case LUA_TUSERDATA:{
-//                if (isJavaObject(index))
-//                {
-//                    return toJavaObject(index).toString();
-//                }else
-//                    return "userdata@"+toPointer(index);
-//            }
-//        }
-//        return "unknown";
-//    }
 
 
     @NativeLuaUseMethod

@@ -1,26 +1,50 @@
 package top.lizhistudio.autolua.core;
 
+
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+
 import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.androidlua.LuaContextFactory;
+import top.lizhistudio.androidlua.LuaFunctionAdapter;
+import top.lizhistudio.androidlua.exception.LuaError;
 import top.lizhistudio.androidlua.exception.LuaRuntimeError;
 import top.lizhistudio.androidlua.exception.LuaTypeError;
+import top.lizhistudio.autolua.core.value.LuaNumber;
+import top.lizhistudio.autolua.core.value.LuaString;
+import top.lizhistudio.autolua.core.value.LuaValue;
 
 public class AutoLuaEngine implements LuaInterpreter{
-    private LuaContextFactory contextFactory;
+    private final LuaContextFactory luaContextFactory;
     private LuaContext nowLuaContext;
     private final Object luaContextMutex = new Object();
     private boolean isRunning = false;
     private Thread workThread = null;
+    private final ArrayList<LuaFunctionAdapter> initializeHandlers;
 
-    static {
-        System.loadLibrary("autolua");
-    }
-//TODO 使用builder模式
-    private AutoLuaEngine(@NonNull LuaContextFactory luaContextFactory)
+    public AutoLuaEngine(@NonNull LuaContextFactory luaContextFactory)
     {
-        this.contextFactory = luaContextFactory;
+        this.luaContextFactory = luaContextFactory;
+        initializeHandlers = new ArrayList<>();
+    }
+
+    private void onInitializeLuaContextByHandler()
+    {
+        try{
+            synchronized (initializeHandlers)
+            {
+                for (LuaFunctionAdapter functionAdapter:initializeHandlers)
+                {
+                    nowLuaContext.pop(functionAdapter.onExecute(nowLuaContext));
+                }
+            }
+        }catch (LuaError e)
+        {
+            throw e;
+        }catch (Throwable e)
+        {
+            throw new LuaRuntimeError(e);
+        }
     }
 
     private LuaContext prepareLuaContext()
@@ -30,7 +54,10 @@ public class AutoLuaEngine implements LuaInterpreter{
             if (isRunning)
                 throw  new LuaRuntimeError("AutoLua is running");
             if (nowLuaContext == null)
-                nowLuaContext = contextFactory.newLuaContext();
+            {
+                nowLuaContext = luaContextFactory.newLuaContext();
+                onInitializeLuaContextByHandler();
+            }
             isRunning = true;
             workThread = Thread.currentThread();
             return nowLuaContext;
@@ -175,6 +202,23 @@ public class AutoLuaEngine implements LuaInterpreter{
                 nowLuaContext.destroy();
                 nowLuaContext = null;
             }
+        }
+    }
+
+
+    public boolean addInitializeHandler(LuaFunctionAdapter luaFunctionAdapter)
+    {
+        synchronized (initializeHandlers)
+        {
+            return initializeHandlers.add(luaFunctionAdapter);
+        }
+    }
+
+    public boolean removeInitializeHandler(LuaFunctionAdapter luaFunctionAdapter)
+    {
+        synchronized (initializeHandlers)
+        {
+            return initializeHandlers.remove(luaFunctionAdapter);
         }
     }
 }

@@ -1,0 +1,193 @@
+syntax="proto3";
+option java_package="top.lizhistudio.autolua.core.rpc";
+option java_outer_classname="Protocol";
+
+enum CODE_TYPE{
+  TEXT_BINARY=0;
+  TEXT=1;
+  BINARY=2;
+}
+
+message LuaError{
+  string type=1;
+  string message=2;
+}
+
+message ToPointer{
+  int32 index=1;
+  int64 result=2;
+}
+
+message ToLong{
+  int32 index=1;
+  int64 result=2;
+}
+
+message ToDouble{
+  int32 index=1;
+  double result=2;
+}
+
+message ToString{
+  int32 index=1;
+  bytes result=2;
+}
+
+message ToBoolean{
+  int32 index=1;
+  bool  result=2;
+}
+
+message PushBaseValue{
+  oneof v{
+    bytes b=1;
+    int64 l=2;
+    double d=3;
+    bool z=4;
+  }
+}
+
+message PushLuaFunctionAdapter{
+  int64 id=1;
+}
+
+message PushLuaObjectAdapter{
+  int64 id=1;
+  repeated string methodName=2;
+}
+
+message GetTable{
+  int32 tableIndex=1;
+  int32 result=2;
+}
+
+message SetTable{
+  int32 tableIndex=1;
+}
+
+message GetGlobal{
+  string key=1;
+  int32 result=2;
+}
+
+message SetGlobal{
+  string key=1;
+}
+
+message RawGet{
+  int32 tableIndex=1;
+  int32 result=2;
+}
+
+message RawSet{
+  int32 tableIndex=1;
+}
+
+message GetTop{
+  int32 result=1;
+}
+
+message SetTop{
+  int32 n=1;
+}
+
+message Pop{
+  int32 n=1;
+}
+
+message GetType{
+  int32 index=1;
+  int32 result=2;
+}
+
+message IsInteger{
+  int32 index=1;
+  bool result=2;
+}
+
+message IsLuaObjectAdapter{
+  int32 index=1;
+  bool result=2;
+}
+
+message LoadFile{
+  string path=1;
+  CODE_TYPE codeType=2;
+}
+
+message LoadBuffer{
+  bytes code=1;
+  string chunkName=2;
+  CODE_TYPE codeType=3;
+}
+
+message PCall{
+  int32 argNumber=1;
+  int32 resultNumber=2;
+  int32 errorFunctionIndex=3;
+}
+
+message Destroy{}
+
+message Create{}
+
+message CallLuaFunctionAdapter{
+  int64 id=1;
+  int32 result=2;
+}
+
+message CallLuaObjectAdapter{
+  int64 id=1;
+  string methodName=2;
+  int32 result=3;
+}
+
+message ReleaseLuaFunctionAdapter{
+  int64 id=1;
+}
+
+message ReleaseLuaObjectAdapter{
+  int64 id=1;
+}
+
+message Message{
+  enum TYPE{
+    REQUEST=0;
+    RESPONSE=1;
+  }
+  int64 id =1;
+  TYPE type=2;
+  int64 contextID=3;
+  oneof message{
+    LuaError error=4;
+    ToPointer toPointer=5;
+    ToLong toLong=6;
+    ToDouble toDouble=7;
+    ToString toString=8;
+    ToBoolean toBoolean=9;
+    PushBaseValue pushBaseValue=10;
+    PushLuaFunctionAdapter pushLuaFunctionAdapter=11;
+    PushLuaObjectAdapter pushLuaObjectAdapter=12;
+    GetTable getTable=13;
+    SetTable setTable=14;
+    GetGlobal getGlobal=15;
+    SetGlobal setGlobal=16;
+    RawGet rawGet=17;
+    RawSet rawSet=18;
+    GetTop getTop=19;
+    SetTop setTop=20;
+    Pop pop=21;
+    GetType getType=22;
+    IsInteger isInteger=23;
+    IsLuaObjectAdapter isLuaObjectAdapter=24;
+    LoadFile loadFile=25;
+    LoadBuffer loadBuffer=26;
+    PCall pCall=27;
+    Destroy destroy=28;
+    Create create=29;
+    CallLuaFunctionAdapter callLuaFunctionAdapter=30;
+    CallLuaObjectAdapter callLuaObjectAdapter=31;
+    ReleaseLuaFunctionAdapter releaseLuaFunctionAdapter=32;
+    ReleaseLuaObjectAdapter releaseLuaObjectAdapter=33;
+  }
+}

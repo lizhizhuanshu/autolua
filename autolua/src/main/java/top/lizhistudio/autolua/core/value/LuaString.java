@@ -1,4 +1,4 @@
-package top.lizhistudio.autolua.core;
+package top.lizhistudio.autolua.core.value;
 
 import java.util.Arrays;
 
@@ -21,7 +21,12 @@ public class LuaString extends LuaValue {
     }
 
     @Override
-    public byte[] getBytes() {
+    public byte[] toBytes() {
         return bytes;
+    }
+
+    public String toString()
+    {
+        return new String(bytes);
     }
 }

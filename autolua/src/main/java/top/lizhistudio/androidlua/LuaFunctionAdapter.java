@@ -1,5 +1,5 @@
 package top.lizhistudio.androidlua;
 
-public interface LuaHandler {
+public interface LuaFunctionAdapter {
     int onExecute(LuaContext luaContext) throws Throwable;
 }

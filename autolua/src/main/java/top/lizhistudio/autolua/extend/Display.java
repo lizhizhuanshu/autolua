@@ -9,8 +9,6 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.util.LongSparseArray;
-
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,7 +16,6 @@ import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import top.lizhistudio.androidlua.annotation.NativeLuaUseMethod;
 import top.lizhistudio.autolua.conceal.IWindowManager;
 import top.lizhistudio.autolua.conceal.SurfaceControlWrap;
 
@@ -27,20 +24,19 @@ public class Display {
     public static final int  LEVEL = -1;
     private static final Point baseSize= new Point();
     private static final int defaultDirection;
-    private static final LongSparseArray<Display> displays = new LongSparseArray<>();
     static {
         IWindowManager.getBaseDisplaySize(IWindowManager.MAIN_DISPLAY_TOKEN, baseSize);
         defaultDirection = baseSize.x >baseSize.y ? LEVEL:VERTICAL;
     }
     private final AtomicBoolean isDestroy = new AtomicBoolean(false);
+    private final Object imageMutex = new Object();
     private int recordDirection;
-    private final IBinder iBinder;
+    private IBinder iBinder;
     private final Point nowSize;
     private final HandlerThread handlerThread;
     private final Handler handler;
     private ImageReader imageReader;
     private Image nowImage = null;
-
 
     public static int getBaseWidth()
     {
@@ -69,34 +65,8 @@ public class Display {
     }
 
 
-    @NativeLuaUseMethod
-    public static void releaseDisplay(long nativeLua)
-    {
-        synchronized (displays)
-        {
-            displays.remove(nativeLua);
-        }
-    }
-
-    public static Display getDisplay(long nativeLua)
-    {
-        synchronized (displays)
-        {
-            return displays.get(nativeLua);
-        }
-    }
-
-    public static void clearDisplay()
-    {
-        synchronized (displays)
-        {
-            displays.clear();
-        }
-    }
-
     private Display()
     {
-        iBinder = SurfaceControlWrap.createDisplay("Display@"+hashCode(),false);
         nowSize = new Point();
         imageReader = null;
         handlerThread = new HandlerThread("worker@"+hashCode());
@@ -104,27 +74,21 @@ public class Display {
         handler = new Handler(handlerThread.getLooper());
     }
 
-    public static Display newInstance(long nativeLua)
-    {
-        Display result = new Display();
-        synchronized (displays)
-        {
-            displays.put(nativeLua,result);
-        }
-        return result;
-    }
-
 
     public synchronized void destroy()
     {
         if (isDestroy.compareAndSet(false,true))
         {
-            SurfaceControlWrap.destroyDisplay(iBinder);
+            handlerThread.interrupt();
+            if (iBinder != null)
+            {
+                SurfaceControlWrap.destroyDisplay(iBinder);
+                iBinder = null;
+            }
             if(nowImage != null)
                 nowImage.close();
             if(imageReader != null)
                 imageReader.close();
-            handlerThread.interrupt();
         }
     }
 
@@ -145,7 +109,29 @@ public class Display {
         return getDirection() != recordDirection;
     }
 
-    public synchronized void reset(int width, int height) throws InterruptedException
+
+    public synchronized void update() throws InterruptedException
+    {
+        Image image;
+        synchronized (imageMutex)
+        {
+            image = imageReader.acquireLatestImage();
+            if (image == null)
+            {
+                if (nowImage == null)
+                {
+                    imageMutex.wait();
+                    nowImage = imageReader.acquireLatestImage();
+                }
+            }else {
+                if (nowImage != null)
+                    nowImage.close();
+                nowImage = image;
+            }
+        }
+    }
+
+    public synchronized void initialize(int width, int height) throws InterruptedException
     {
         recordDirection = getDirection();
         int baseWidth = getBaseWidth();
@@ -182,15 +168,17 @@ public class Display {
         imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                synchronized (isDestroy)
+                synchronized (imageMutex)
                 {
-                    isDestroy.notifyAll();
+                    imageMutex.notifyAll();
                 }
             }
         },handler);
 
         SurfaceControlWrap.openTransaction();
         try{
+            if (iBinder == null)
+                iBinder = SurfaceControlWrap.createDisplay("Display@"+hashCode(),false);
             SurfaceControlWrap.setDisplaySurface(iBinder,imageReader.getSurface());
             SurfaceControlWrap.setDisplayLayerStack(iBinder,0);
             SurfaceControlWrap.setDisplaySize(iBinder,width,height);
@@ -202,27 +190,6 @@ public class Display {
     }
 
 
-
-    public synchronized void update() throws InterruptedException
-    {
-        Image image;
-        synchronized (isDestroy)
-        {
-            image = imageReader.acquireLatestImage();
-            if (image == null)
-            {
-                if (nowImage == null)
-                {
-                    isDestroy.wait();
-                    nowImage = imageReader.acquireLatestImage();
-                }
-            }else {
-                if (nowImage != null)
-                    nowImage.close();
-                nowImage = image;
-            }
-        }
-    }
 
     public synchronized ByteBuffer getDisplayBuffer() throws InterruptedException
     {
@@ -307,4 +274,14 @@ public class Display {
         return  nowImage.getPlanes()[0].getPixelStride();
     }
 
+
+    private final static class Stub
+    {
+        private final static Display instance = new Display();
+    }
+
+    public static Display getDefault()
+    {
+        return Stub.instance;
+    }
 }

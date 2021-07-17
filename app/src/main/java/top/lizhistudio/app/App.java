@@ -1,63 +1,52 @@
 package top.lizhistudio.app;
 
 import android.app.Application;
-import android.content.Intent;
 import android.util.Log;
 
 import com.immomo.mls.MLSBuilder;
 import com.immomo.mls.MLSEngine;
 
 
+import com.immomo.mls.ScriptStateListener;
 import com.immomo.mls.fun.lt.SIApplication;
 
 import org.luaj.vm2.Globals;
 
-import java.util.Random;
-
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
-import top.lizhistudio.app.core.implement.UserInterfaceImplement;
 import top.lizhistudio.app.core.implement.UserdataUI;
 import top.lizhistudio.app.provider.GlideImageProvider;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
+import top.lizhistudio.autolua.core.AutoLuaEngine;
+import top.lizhistudio.autolua.core.RemoteLuaContextManager;
+import top.lizhistudio.autolua.core.SetScriptLoadInitializeHandler;
 
 
 public class App extends Application {
     private static App app;
     private FloatControllerView floatControllerView;
-    private AutoLuaEngineImplement2 autoLuaEngineImplement2;
-
-    private static class EngineObserver implements AutoLuaEngineImplement2.Observer
-    {
-        @Override
-        public void onUpdate(AutoLuaEngineImplement2.STATE state) {
-            if (state == AutoLuaEngineImplement2.STATE.RUNNING)
-                getApp().startService(new Intent(getApp(), MainService.class));
-            else if(state == AutoLuaEngineImplement2.STATE.STOP)
-                getApp().stopService(new Intent(getApp(),MainService.class));
-        }
-    }
-
-    private static int random(int min,int max)
-    {
-        Random random = new  Random();
-        return random.nextInt(max) % (max-min+1) + min;
-    }
+    private AutoLuaEngine autoLuaEngine;
+    private SetScriptLoadInitializeHandler scriptLoadInitializeHandler;
 
     private void initializeAutoLuaEngine()
     {
-        autoLuaEngineImplement2 = new AutoLuaEngineImplement2();
-        autoLuaEngineImplement2.getStartConfig()
-                .setProcessPrint(true)
-                .setPackagePath(this.getPackageCodePath());
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
-        {
-            autoLuaEngineImplement2.getStartConfig().setServiceAddress(random(1995,2002));
-        }
-        autoLuaEngineImplement2.attach(new EngineObserver());
-        autoLuaEngineImplement2.register(BaseLuaContextFactory.AUTO_LUA_UI_NAME,
-                UserInterface.class,
-                UserInterfaceImplement.getDefault());
+        RemoteLuaContextManager remoteLuaContextManager = new RemoteLuaContextManager.Builder()
+                .outputPrintListener(new RemoteLuaContextManager.PrintListener() {
+                    @Override
+                    public void onPrint(String message) {
+                        Log.d("AutoLuaEngine",message);
+                    }
+                })
+                .errorPrintListener(new RemoteLuaContextManager.PrintListener() {
+                    @Override
+                    public void onPrint(String message) {
+                        Log.e("AutoLuaEngine",message);
+                    }
+                })
+                .build(this);
+        scriptLoadInitializeHandler = new SetScriptLoadInitializeHandler();
+        autoLuaEngine = new AutoLuaEngine(remoteLuaContextManager);
+        autoLuaEngine.addInitializeHandler(scriptLoadInitializeHandler);
     }
 
 
@@ -83,7 +72,6 @@ public class App extends Application {
         initializeMLSEngine();
         initializeAutoLuaEngine();
         floatControllerView = new FloatControllerViewImplement(this,40);
-        UserInterfaceImplement.getDefault().initialize(this);
         ProjectManagerImplement.getInstance().initialize(this);
         log("onCreate: " + Globals.isInit() + " " + Globals.isIs32bit());
     }
@@ -111,9 +99,14 @@ public class App extends Application {
         return floatControllerView;
     }
 
-    public AutoLuaEngineImplement2 getAutoLuaEngineImplement2()
+    public AutoLuaEngine getAutoLuaEngine()
     {
-        return autoLuaEngineImplement2;
+        return autoLuaEngine;
+    }
+
+    public void setScriptLoadPath(String path)
+    {
+        scriptLoadInitializeHandler.setScriptLoadPath(path);
     }
 }
 

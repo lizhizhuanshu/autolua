@@ -11,19 +11,25 @@ import java.net.Socket;
 import java.util.Observable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import top.lizhistudio.androidlua.LuaContext;
+import top.lizhistudio.androidlua.LuaFunctionAdapter;
+import top.lizhistudio.androidlua.Util;
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
+import top.lizhistudio.autolua.core.AutoLuaEngine;
+import top.lizhistudio.autolua.core.LuaInterpreter;
+import top.lizhistudio.autolua.core.value.LuaValue;
 import top.lizhistudio.autolua.debugger.proto.DebugMessage;
-import top.lizhistudio.autolua.rpc.Callback;
 
 public class DebuggerServer extends Observable {
+    private static final String DEBUGGER_NAME = "debugger";
     private static final String TAG = "DebuggerServer";
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private volatile ServerSocket serverSocket;
     private volatile Transport transport;
     private String rootPath = null;
-    private final PrintListener printListener;
+    private LuaFunctionAdapter debuggerInitializeHandler = null;
 
     private volatile String errorMessage = null;
 
@@ -39,19 +45,58 @@ public class DebuggerServer extends Observable {
 
     private DebuggerServer()
     {
-        printListener = new PrintListener() {
-            private void log(String source,int line,String message)
+        LuaFunctionAdapter luaPrintHandler = new LuaFunctionAdapter() {
+            private String getMessage(LuaContext context)
             {
+                StringBuilder builder = new StringBuilder();
+                for (int i=1;i<=context.getTop();i++)
+                {
+                    builder.append(Util.luaValueToString(context,i));
+                    if (i!=context.getTop())
+                    {
+                        builder.append("    ");
+                    }
+                }
+                return builder.toString();
+            }
 
+            private void onLog(String source,int line,String message)
+            {
                 send(DebugMessage.Message.newBuilder()
                         .setMethod(DebugMessage.METHOD.LOG)
                         .setPath(relativePath(rootPath,source))
                         .setLine(line)
                         .setMessage(message).build());
             }
+
             @Override
-            public void onPrint(String source, int line, String message) {
-                log(source, line, message);
+            public int onExecute(LuaContext luaContext) throws Throwable {
+                String message = getMessage(luaContext);
+                luaContext.getGlobal("debug");
+                luaContext.push("getinfo");
+                luaContext.getTable(-2);
+                luaContext.push(2);
+                luaContext.push("Sl");
+                luaContext.pCall(2,1,0);
+                luaContext.push("source");
+                luaContext.getTable(-2);
+                String source = luaContext.toString(-1);
+                luaContext.pop(1);
+                luaContext.push("currentline");
+                luaContext.getTable(-2);
+                int line = (int) luaContext.toLong(-1);
+                onLog(source,line,message);
+                return 0;
+            }
+        };
+
+
+        debuggerInitializeHandler= new LuaFunctionAdapter() {
+            @Override
+            public int onExecute(LuaContext luaContext) throws Throwable {
+                luaContext.push(luaPrintHandler);
+                luaContext.setGlobal("print");
+                return 0;
             }
         };
     }
@@ -108,14 +153,12 @@ public class DebuggerServer extends Observable {
     private void onExecuteFile(String projectName,String path)
     {
         ProjectManager projectManager = ProjectManagerImplement.getInstance();
-        AutoLuaEngineImplement2 autoLuaEngineImplement2 = App.getApp().getAutoLuaEngineImplement2();
-        LuaInterpreter interpreter = autoLuaEngineImplement2.getInterpreter();
+        AutoLuaEngine interpreter = App.getApp().getAutoLuaEngine();
         if (interpreter != null && !interpreter.isRunning())
         {
             String projectPath = projectManager.getProjectPath(projectName);
             if (projectPath!= null)
             {
-
                 MLSEngine.setLVConfig(new LVConfigBuilder(App.getApp())
                         .setRootDir(projectPath)
                         .setImageDir(projectPath+"/image")
@@ -123,25 +166,25 @@ public class DebuggerServer extends Observable {
                         .setGlobalResourceDir(projectPath+"/resource").build());
                 //此处需要注意
                 rootPath = projectPath;
-                autoLuaEngineImplement2.register(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME,PrintListener.class,printListener);
-                interpreter.reset();
-                interpreter.setLoadScriptPath(projectPath);
-                interpreter.executeFile(projectPath + "/" + path, new Callback() {
-                    @Override
-                    public void onCompleted(Object result) {
-                        //Log.d(TAG,result.toString());
-                        sendStopped();
-                        autoLuaEngineImplement2.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
-                    }
-                    @Override
-                    public void onError(Throwable throwable) {
-                        sendStopped();
-                        autoLuaEngineImplement2.unRegister(BaseLuaContextFactory.AUTO_LUA_PRINT_LISTENER_NAME);
-                        if (throwable != null)
-                        {
-                            throwable.printStackTrace();
-                        }
-                    }
+                interpreter.destroyNowLuaContext();
+                interpreter.addInitializeHandler(debuggerInitializeHandler);
+                App.getApp().setScriptLoadPath(projectPath);
+                interpreter.executeFile(projectPath + "/" + path,
+                        LuaContext.CODE_TYPE.TEXT_BINARY,new LuaInterpreter.Callback() {
+                            @Override
+                            public void onCallback(LuaValue[] result) {
+                                sendStopped();
+                                interpreter.removeInitializeHandler(debuggerInitializeHandler);
+                            }
+                            @Override
+                            public void onError(Throwable throwable) {
+                                sendStopped();
+                                if (throwable != null)
+                                {
+                                    throwable.printStackTrace();
+                                }
+                                interpreter.removeInitializeHandler(debuggerInitializeHandler);
+                            }
                 });
             }
         }
@@ -165,14 +208,14 @@ public class DebuggerServer extends Observable {
 
     private void onHandler(DebugMessage.Message message)
     {
-        AutoLuaEngineImplement2 autoLuaEngineImplement2 = App.getApp().getAutoLuaEngineImplement2();
+        AutoLuaEngine autoLuaEngine = App.getApp().getAutoLuaEngine();
         ProjectManager projectManager = ProjectManagerImplement.getInstance();
         switch (message.getMethod())
         {
             case UNKNOWN:
                 break;
             case INTERRUPT:
-                autoLuaEngineImplement2.getInterpreter().interrupt();
+                autoLuaEngine.interrupt();
                 break;
             case EXECUTE_FILE:
                 onExecuteFile(message.getName(),message.getPath());
@@ -226,8 +269,10 @@ public class DebuggerServer extends Observable {
                 }catch (IOException e)
                 {
                     e.printStackTrace();
-                    App.getApp().getAutoLuaEngineImplement2().getInterpreter().interrupt();
-                }finally {
+                    App.getApp().getAutoLuaEngine().interrupt();
+                }catch (Throwable e){
+                    e.printStackTrace();
+                } finally {
                     transport.close();
                     transport = null;
                 }

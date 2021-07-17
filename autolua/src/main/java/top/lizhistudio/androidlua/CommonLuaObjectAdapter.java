@@ -3,6 +3,8 @@ package top.lizhistudio.androidlua;
 import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommonLuaObjectAdapter implements LuaObjectAdapter{
     private final Object o;
@@ -22,6 +24,23 @@ public class CommonLuaObjectAdapter implements LuaObjectAdapter{
         {
             return false;
         }
+    }
+
+    @Override
+    public List<String> getAllMethodName() {
+        ArrayList<String> methods = new ArrayList<>();
+        for (Method method: o.getClass().getMethods())
+        {
+            if (method.getReturnType() == int.class)
+            {
+                Class<?>[] classes = method.getParameterTypes();
+                if (classes.length == 1 && classes[0] == LuaContext.class)
+                {
+                    methods.add(method.getName());
+                }
+            }
+        }
+        return methods;
     }
 
     @Override

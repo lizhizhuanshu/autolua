@@ -23,10 +23,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.app.App;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.debugger.DebuggerServer;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
+import top.lizhistudio.autolua.core.LuaInterpreter;
+import top.lizhistudio.autolua.core.value.LuaValue;
 
 public class MainActivity extends AppCompatActivity {
     private long lastBackPressedTime = 0;
@@ -92,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
         long time = SystemClock.uptimeMillis();
         if(time - lastBackPressedTime < 3000)
         {
-            App.getApp().getAutoLuaEngineImplement2().sendStop();
             DebuggerServer.getInstance().stop();
             finish();
         }else

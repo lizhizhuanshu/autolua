@@ -4,7 +4,7 @@
 #include "display.h"
 #include "Bitmap.h"
 
-#define DISPLAY_CLASS_NAME "top/lizhistudio/autolua2/extend/Display"
+#define DISPLAY_CLASS_NAME "top/lizhistudio/autolua/extend/Display"
 #define BYTEBUFFER_CLASS_NAME "java/nio/ByteBuffer"
 
 #define CLASS_ARG(className) "L" className ";"

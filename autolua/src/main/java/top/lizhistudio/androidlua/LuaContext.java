@@ -1,6 +1,6 @@
 package top.lizhistudio.androidlua;
 
-import top.lizhistudio.androidlua.exception.LuaError;
+
 import top.lizhistudio.androidlua.exception.LuaTypeError;
 
 public interface LuaContext {
@@ -23,12 +23,16 @@ public interface LuaContext {
     void push(String v);
     void push(byte[] v);
     void push(boolean v);
-    void push(LuaHandler v);
+    void push(LuaFunctionAdapter v);
     void push(LuaObjectAdapter v);
     void pushNil();
 
-    int getTable(int tableIndex)throws LuaError;
-    void setTable(int tableIndex)throws LuaError;
+    int getTable(int tableIndex);
+    void setTable(int tableIndex);
+    int getGlobal(String key);
+    void setGlobal(String key);
+    int rawGet(int tableIndex);
+    void rawSet(int tableIndex);
 
     int getTop();
     void setTop(int n);

@@ -11,13 +11,13 @@
 #define PACKAGE_NAME "top/lizhistudio/autolua"
 #define ANDROID_LUA_PACKAGE_NAME "top/lizhistudio/androidlua"
 #define LUA_CONTEXT_CLASS_NAME PACKAGE_NAME "/core/LuaContextImplement"
-#define LUA_HANDLER_CLASS_NAME ANDROID_LUA_PACKAGE_NAME "/LuaHandler"
+#define LUA_FUNCTION_ADAPTER_CLASS_NAME ANDROID_LUA_PACKAGE_NAME "/LuaFunctionAdapter"
 #define LUA_OBJECT_ADAPTER_CLASS_NAME ANDROID_LUA_PACKAGE_NAME "/LuaObjectAdapter"
 #define PUSH_THROWABLE_ERROR "push java throwable error"
 
 
 #define LUA_OBJECT_ADAPTER_NAME "LuaObjectAdapter"
-#define LUA_HANDLER_NAME "LuaHandler"
+#define LUA_FUNCTION_ADAPTER_NAME "LuaFunctionAdapter"
 #define GLOBAL(env, obj) env->NewGlobalRef(obj)
 #define FreeGlobal(env,obj) env->DeleteGlobalRef(obj)
 #define toLuaState(L) ((lua_State*)L)
@@ -156,7 +156,7 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
     JNIEnv * env = nullptr;
     if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK)
         return -1;
-    LuaHandlerClass = findGlobalClass(env,LUA_HANDLER_CLASS_NAME);
+    LuaHandlerClass = findGlobalClass(env, LUA_FUNCTION_ADAPTER_CLASS_NAME);
     LuaContextClass = findGlobalClass(env,LUA_CONTEXT_CLASS_NAME);
     LuaObjectAdapterClass = findGlobalClass(env, LUA_OBJECT_ADAPTER_CLASS_NAME);
 
@@ -442,7 +442,7 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_newLuaState(JNIEnv *env, j
     }
     lua_pop(L,1);
 
-    if (luaL_newmetatable(L,LUA_HANDLER_NAME))
+    if (luaL_newmetatable(L, LUA_FUNCTION_ADAPTER_NAME))
     {
         luaL_Reg methods[] = {
                 {"__gc",javaObjectDestroy},
@@ -480,7 +480,7 @@ static bool pushJavaObject(JNIEnv *env, jlong native_lua, jobject object_wrapper
 }
 
 
-static int luaHandlerCall(lua_State*L)
+static int luaFunctionAdapterCall(lua_State*L)
 {
     JNIEnv *env = GetJNIEnv(L);
     auto * pid = (jlong*)lua_touserdata(L,lua_upvalueindex(1));
@@ -491,21 +491,21 @@ static int luaHandlerCall(lua_State*L)
     return result;
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_top_lizhistudio_autolua_core_LuaContextImplement_push__JLtop_lizhistudio_androidlua_LuaHandler_2(JNIEnv *env,
-                                                                                                      jclass clazz,
-                                                                                                      jlong native_lua,
-                                                                                                      jobject lua_handler) {
-    if(lua_handler != nullptr )
+extern "C"
+JNIEXPORT void JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_push__JLtop_lizhistudio_androidlua_LuaFunctionAdapter_2(
+        JNIEnv *env, jclass clazz, jlong native_lua, jobject lua_function_adapter) {
+    if(lua_function_adapter != nullptr )
     {
-        if (pushJavaObject(env, native_lua, lua_handler)){
-            luaL_setmetatable(toLuaState(native_lua), LUA_HANDLER_NAME);
-            lua_pushcclosure(toLuaState(native_lua),luaHandlerCall,1);
+        if (pushJavaObject(env, native_lua, lua_function_adapter)){
+            luaL_setmetatable(toLuaState(native_lua), LUA_FUNCTION_ADAPTER_NAME);
+            lua_pushcclosure(toLuaState(native_lua), luaFunctionAdapterCall, 1);
         }
     }else{
         lua_pushnil(toLuaState(native_lua));
     }
 }
+
 
 extern "C" JNIEXPORT void JNICALL
 Java_top_lizhistudio_autolua_core_LuaContextImplement_push__JLtop_lizhistudio_androidlua_LuaObjectAdapter_2(
@@ -518,7 +518,7 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_push__JLtop_lizhistudio_an
             luaL_setmetatable(L,LUA_OBJECT_ADAPTER_NAME);
         }
     } else{
-        lua_pushnil(toLuaState(native_lua));
+        lua_pushnil(L);
     }
 }
 
@@ -629,54 +629,138 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_toPointer(JNIEnv *env, jcl
     return (jlong)lua_topointer(toLuaState(native_lua),index);
 }
 
-static int lua_setTable(lua_State*L)
+#define NewSetMethod(name) static int SetMethod##name(lua_State*L) \
+{\
+    int tableIndex = lua_tointeger(L,lua_upvalueindex(1));\
+    lua_##name(L,tableIndex);\
+    return 0;\
+}
+
+NewSetMethod(settable)
+NewSetMethod(rawset)
+
+static int luaProtectCall(lua_State*L,jint tableIndex,lua_CFunction method,int resultSum)
 {
-    int tableIndex = luaL_checkinteger(L,1);
-    lua_settable(L,tableIndex);
-    return 0;
+
+    int oldTop = lua_gettop(L);
+    lua_pushinteger(L,tableIndex);
+    lua_pushcclosure(L,method,1);
+    for (int i = 1; i <=oldTop; ++i) {
+        lua_pushvalue(L,i);
+    }
+    return lua_pcall(L,oldTop,resultSum,0);
+}
+
+static void setTable(JNIEnv*env,jlong native_lua,jint tableIndex,lua_CFunction method)
+{
+    lua_State *L = toLuaState(native_lua);
+    int result = luaProtectCall(L,tableIndex,method,0);
+    checkLuaLoadOrCallError(L,env,result);
+    lua_pop(L,2);
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_top_lizhistudio_autolua_core_LuaContextImplement_setTable(JNIEnv *env, jclass clazz, jlong native_lua,
                                                                jint table_index) {
-    lua_State *L = toLuaState(native_lua);
-    lua_pushcfunction(L,lua_setTable);
-    lua_pushinteger(L,table_index);
-    lua_pushvalue(L,-2);
-    lua_pushvalue(L,-1);
-    int result = lua_pcall(L,3,0,0);
-    checkLuaLoadOrCallError(L,env,result);
-    lua_pop(L,2);
+    setTable(env,native_lua,table_index,SetMethodsettable);
 }
 
-static int lua_getTable(lua_State*L)
+#define NewGetMethod(name) static int GetMethod##name(lua_State*L)\
+{\
+    int tableIndex = lua_tointeger(L,lua_upvalueindex(1));\
+    int result = lua_##name(L,tableIndex);\
+    lua_pushinteger(L,result);\
+    return 2;\
+}
+
+NewGetMethod(gettable)
+NewGetMethod(rawget)
+
+static jint getTable(JNIEnv*env,jlong native_lua,jint table_index,lua_CFunction method)
 {
-    int tableIndex = luaL_checkinteger(L,1);
-    int result = lua_gettable(L,tableIndex);
-    lua_pushinteger(L,result);
-    return 1;
+    lua_State *L = toLuaState(native_lua);
+    jint result = luaProtectCall(L,table_index,method,2);
+    if(!checkLuaLoadOrCallError(L,env,result))
+    {
+        result = lua_tointeger(L,-1);
+        lua_copy(L,-2,-3);
+        lua_pop(L,2);
+    } else{
+        lua_pop(L,1);
+    }
+    return result;
 }
 
 extern "C" JNIEXPORT jint
 JNICALL
 Java_top_lizhistudio_autolua_core_LuaContextImplement_getTable(JNIEnv *env, jclass clazz,
                                                                jlong native_lua, jint table_index) {
-    lua_State *L = toLuaState(native_lua);
-    lua_pushcfunction(L,lua_getTable);
-    lua_pushinteger(L,table_index);
-    lua_pushvalue(L,-2);
-    lua_pushvalue(L,-1);
-    int result = lua_pcall(L,3,1,0);
-    jint r = 0;
-    if(!checkLuaLoadOrCallError(L,env,result))
-    {
-        r = lua_tointeger(L,-1);
-        lua_pop(L,3);
-    } else{
-        lua_pop(L,2);
-    }
-    return r;
+    return getTable(env,native_lua,table_index,GetMethodgettable);
 }
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_rawSet(JNIEnv *env, jclass clazz,
+                                                             jlong native_lua, jint table_index) {
+    setTable(env,native_lua,table_index,SetMethodrawset);
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_rawGet(JNIEnv *env, jclass clazz,
+                                                             jlong native_lua, jint table_index) {
+    return getTable(env,native_lua,table_index,GetMethodrawget);
+}
+
+static int lua_setGlobal(lua_State*L)
+{
+    JNIEnv*env = GetJNIEnv(L);
+    auto jKey = (jstring)lua_touserdata(L,1);
+    LocalJavaString key(env,jKey);
+    lua_setglobal(L,key.str());
+    return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_setGlobal(JNIEnv *env, jclass clazz,
+                                                                jlong native_lua, jstring key) {
+    lua_State *L = toLuaState(native_lua);
+    lua_pushcfunction(L,lua_setGlobal);
+    lua_pushlightuserdata(L,key);
+    lua_pushvalue(L,-3);
+    int result = lua_pcall(L,2,0,0);
+    checkLuaLoadOrCallError(L,env,result);
+    lua_pop(L,1);
+}
+
+static int lua_getGlobal(lua_State*L)
+{
+    JNIEnv*env = GetJNIEnv(L);
+    auto jKey = (jstring)lua_touserdata(L,1);
+    LocalJavaString key(env,jKey);
+    int result = lua_getglobal(L,key.str());
+    lua_pushinteger(L,result);
+    return 2;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_getGlobal(JNIEnv *env, jclass clazz,
+                                                                jlong native_lua, jstring key) {
+    lua_State *L = toLuaState(native_lua);
+    lua_pushcfunction(L,lua_getGlobal);
+    lua_pushlightuserdata(L,key);
+    jint result = lua_pcall(L,1,2,0);
+    if (!checkLuaLoadOrCallError(L,env,result))
+    {
+        result = lua_tointeger(L,-1);
+        lua_pop(L,1);
+    }
+    return result;
+}
+
 
 extern "C" JNIEXPORT jboolean JNICALL
 Java_top_lizhistudio_autolua_core_LuaContextImplement_isLuaObjectAdapter(JNIEnv *env, jclass clazz,
@@ -685,22 +769,21 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_isLuaObjectAdapter(JNIEnv 
     return luaL_testudata(toLuaState(native_lua),index,LUA_OBJECT_ADAPTER_NAME) != nullptr;
 }
 
-static void injectMode(lua_State*L,const char* name,lua_CFunction method)
+static void injectMode(lua_State*L,const char* name,lua_CFunction method,bool  isGlobal)
 {
-    luaL_requiref(L,name,method,1);
+    luaL_requiref(L,name,method,isGlobal);
     lua_pop(L,1);
 }
 
 
 extern "C" JNIEXPORT void JNICALL
-Java_top_lizhistudio_autolua_core_LuaContextFactoryImplement_injectAutoLua(JNIEnv *env,
+Java_top_lizhistudio_autolua_core_LuaContextImplement_injectAutoLua(JNIEnv *env,
                                                                            jclass clazz,
-                                                                           jlong native_lua) {
+                                                                           jlong native_lua,
+                                                                           jboolean is_global) {
     lua_State *L = toLuaState(native_lua);
-    injectMode(L,"display",luaopen_display);
-    injectMode(L,"view",luaopen_view);
-    injectMode(L,"thread",luaopen_thread);
-    injectMode(L,"input",luaopen_input);
+    injectMode(L,"display",luaopen_display,is_global);
+    injectMode(L,"view",luaopen_view,is_global);
+    injectMode(L,"thread",luaopen_thread,is_global);
+    injectMode(L,"input",luaopen_input,is_global);
 }
-
-

@@ -6,9 +6,11 @@ import android.widget.Toast;
 import com.immomo.mls.MLSEngine;
 import com.immomo.mls.global.LVConfigBuilder;
 
+import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.app.view.FloatControllerView;
-import top.lizhistudio.autolua.rpc.Callback;
+import top.lizhistudio.autolua.core.LuaInterpreter;
+import top.lizhistudio.autolua.core.value.LuaValue;
 
 public class FloatControllerListener implements FloatControllerView.OnClickListener {
     private final String projectName;
@@ -19,7 +21,7 @@ public class FloatControllerListener implements FloatControllerView.OnClickListe
 
     @Override
     public void onClick(FloatControllerView floatControllerView, int state) {
-        LuaInterpreter luaInterpreter = App.getApp().getAutoLuaEngineImplement2().getInterpreter();
+        LuaInterpreter luaInterpreter = App.getApp().getAutoLuaEngine();
         if (luaInterpreter == null)
         {
             Toast.makeText(App.getApp(),"错误的脚本执行环境，无法执行脚本",Toast.LENGTH_LONG)
@@ -37,21 +39,26 @@ public class FloatControllerListener implements FloatControllerView.OnClickListe
                     .setImageDir(projectPath+"/image")
                     .setCacheDir(App.getApp().getCacheDir().getAbsolutePath())
                     .setGlobalResourceDir(projectPath+"/resource").build());
-            luaInterpreter.reset();
-            luaInterpreter.setLoadScriptPath(projectPath);
+            luaInterpreter.destroyNowLuaContext();
+            App.getApp().setScriptLoadPath(projectPath);
             floatControllerView.setState(FloatControllerView.EXECUTEING_STATE);
-            luaInterpreter.executeFile(projectPath + "/main.lua", new Callback() {
-                @Override
-                public void onCompleted(Object result) {
-                    floatControllerView.setState(FloatControllerView.STOPPED_STATE);
-                }
-                @Override
-                public void onError(Throwable throwable) {
-                    if (throwable != null)
-                        Log.e("AutoLuaEngine","call error",throwable);
-                    floatControllerView.setState(FloatControllerView.STOPPED_STATE);
-                }
-            });
+            luaInterpreter.executeFile(
+                    projectPath + "/main.lua",
+                    LuaContext.CODE_TYPE.TEXT_BINARY,
+                    new LuaInterpreter.Callback() {
+
+                        @Override
+                        public void onCallback(LuaValue[] result) {
+                            floatControllerView.setState(FloatControllerView.STOPPED_STATE);
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable) {
+                            if (throwable != null)
+                                Log.e("AutoLuaEngine","call error",throwable);
+                            floatControllerView.setState(FloatControllerView.STOPPED_STATE);
+                        }
+                    });
         }
     }
 }

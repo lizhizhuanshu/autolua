@@ -27,6 +27,19 @@ public class ExampleInstrumentedTest {
         assertEquals("top.lizhistudio.autolua.test", appContext.getPackageName());
     }
 
+    @Test
+    public void testStringBuilderAndStringSplit()
+    {
+        String[] args = new String[]{"name","lizhi","age","26"};
+        StringBuilder builder = new StringBuilder();
+        for (String arg:args)
+        {
+            builder.append(arg);
+            builder.append(";");
+        }
+        String[] newArgs = builder.toString().split(";");
+        assertEquals(args.length,newArgs.length);
+    }
 
     @Test
     public void testAutoLuaContext() throws Throwable

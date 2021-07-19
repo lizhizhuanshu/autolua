@@ -4,11 +4,12 @@ import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 
+import top.lizhistudio.androidlua.CommonLuaObjectAdapter;
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.annotation.LuaMethod;
 import top.lizhistudio.autolua.conceal.InputManagerWrap;
 
-public class Input {
+public class Input extends CommonLuaObjectAdapter {
     private final InputDevice touchDevice;
 
     private long lastTouchDown;

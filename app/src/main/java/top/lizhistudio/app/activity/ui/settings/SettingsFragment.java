@@ -24,7 +24,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import top.lizhistudio.app.R;
-import top.lizhistudio.app.core.debugger.DebuggerServer;
+import top.lizhistudio.app.core.DebuggerServer;
 
 public class SettingsFragment extends Fragment {
     private final static String ERROR_IP = "未连接wifi";

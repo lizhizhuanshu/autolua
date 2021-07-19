@@ -4,6 +4,9 @@ import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+import top.lizhistudio.androidlua.exception.LuaTypeError;
+import top.lizhistudio.autolua.core.value.LuaValue;
+
 public class Util {
     public static String structToString(Object o)
     {
@@ -71,4 +74,43 @@ public class Util {
         }
         return "unknown";
     }
+
+    public static void pushLuaValue(LuaContext context, LuaValue value)
+    {
+        switch (value.type())
+        {
+            case NONE:
+            case NIL:
+                context.pushNil();
+                break;
+            case BOOLEAN:
+                context.push(value.toBoolean());
+                break;
+            case NUMBER:
+                if (value.isInteger())
+                    context.push(value.toLong());
+                else
+                    context.push(value.toDouble());
+                break;
+            case STRING:
+                context.push(value.toBytes());
+                break;
+            case TABLE:
+            case LIGHT_USERDATA:
+            case FUNCTION:
+            case USERDATA:
+            case THREAD:
+            default:
+                throw new LuaTypeError("can't push this type lua value");
+        }
+    }
+
+    public static void pushLuaValues(LuaContext context,LuaValue[] values)
+    {
+        for (LuaValue value:values)
+        {
+            pushLuaValue(context,value);
+        }
+    }
+
 }

@@ -127,6 +127,13 @@ message PCall{
   int32 errorFunctionIndex=3;
 }
 
+message CreateTable{
+  int32 arraySize=1;
+  int32 dictionarySize=2;
+}
+
+message Interrupt{}
+
 message Destroy{}
 
 message Create{}
@@ -149,6 +156,7 @@ message ReleaseLuaFunctionAdapter{
 message ReleaseLuaObjectAdapter{
   int64 id=1;
 }
+
 
 message Message{
   enum TYPE{
@@ -189,5 +197,7 @@ message Message{
     CallLuaObjectAdapter callLuaObjectAdapter=31;
     ReleaseLuaFunctionAdapter releaseLuaFunctionAdapter=32;
     ReleaseLuaObjectAdapter releaseLuaObjectAdapter=33;
+    CreateTable createTable=34;
+    Interrupt interrupt=35;
   }
 }

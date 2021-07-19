@@ -4,10 +4,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 import top.lizhistudio.androidlua.CommonLuaObjectAdapter;
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.LuaFunctionAdapter;
 import top.lizhistudio.androidlua.LuaObjectAdapter;
+import top.lizhistudio.androidlua.NotReleaseLuaFunctionAdapter;
+import top.lizhistudio.androidlua.NotReleaseLuaObjectAdapter;
 import top.lizhistudio.androidlua.exception.LuaError;
 import top.lizhistudio.androidlua.exception.LuaRuntimeError;
 import top.lizhistudio.androidlua.exception.LuaTypeError;
@@ -60,7 +64,7 @@ public class LuaContextTest {
     @Test
     public void testPushLuaObjectAdapter()
     {
-        CommonLuaObjectAdapter commonLuaObjectAdapter = new CommonLuaObjectAdapter(new Object());
+        CommonLuaObjectAdapter commonLuaObjectAdapter = new CommonLuaObjectAdapter();
         luaContext.push(commonLuaObjectAdapter);
         assertEquals(luaContext.type(-1),LuaContext.VALUE_TYPE.USERDATA.getCode());
         assert luaContext.isLuaObjectAdapter(-1);
@@ -73,7 +77,7 @@ public class LuaContextTest {
     public void testLuaHandler()
     {
         luaContext.setTop(0);
-        luaContext.push(new LuaFunctionAdapter() {
+        luaContext.push(new NotReleaseLuaFunctionAdapter() {
             @Override
             public int onExecute(LuaContext luaContext) throws Throwable {
                 long a = luaContext.toLong(1);
@@ -91,7 +95,7 @@ public class LuaContextTest {
         assertEquals(1,luaContext.getTop());
         luaContext.pop(1);
 
-        luaContext.push(new LuaFunctionAdapter() {
+        luaContext.push(new NotReleaseLuaFunctionAdapter() {
             @Override
             public int onExecute(LuaContext luaContext) throws Throwable {
                 throw new LuaRuntimeError("test error");
@@ -170,5 +174,24 @@ public class LuaContextTest {
         luaContext.setTop(0);
     }
 
+    @Test
+    public void testLuaObjectAdapter()
+    {
+        luaContext.push(new CommonLuaObjectAdapter(){
+            public int add(LuaContext context)
+            {
+                long a = context.toLong(2);
+                long b = context.toLong(3);
+                luaContext.push(a+b);
+                return 1;
+            }
+        });
+
+        luaContext.setGlobal("adapter");
+        luaContext.loadBuffer("return adapter:add(100,52)".getBytes(),"test", LuaContext.CODE_TYPE.TEXT_BINARY);
+        luaContext.pCall(0,1,0);
+        assertEquals(152,luaContext.toLong(-1));
+
+    }
 
 }

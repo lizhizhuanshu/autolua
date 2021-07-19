@@ -57,6 +57,32 @@ public class ObjectCache<T> {
         }
     }
 
+    public T removeOut(long id)
+    {
+        synchronized (cache)
+        {
+            T object = cache.get(id);
+            if (object != null)
+            {
+                cache.remove(id);
+            }
+            return object;
+        }
+    }
+
+    public long remove(@NonNull T object) throws NoSuchObjectException
+    {
+        synchronized (cache)
+        {
+            int index= cache.indexOfValue(object);
+            if (index<0)
+                throw new NoSuchObjectException(object);
+            long id = cache.keyAt(index);
+            cache.removeAt(index);
+            return id;
+        }
+    }
+
     public void clear()
     {
         synchronized (cache)
@@ -68,5 +94,12 @@ public class ObjectCache<T> {
     private long newID()
     {
         return id.getAndAdd(1);
+    }
+
+    public static final class NoSuchObjectException extends Exception{
+        public NoSuchObjectException(Object o)
+        {
+            super("ObjectCache don't have "+o);
+        }
     }
 }

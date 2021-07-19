@@ -130,9 +130,9 @@ static jclass LuaHandlerClass = nullptr;
 static jclass LuaObjectAdapterClass = nullptr;
 
 
-static jmethodID GetJavaObjectMethodID = nullptr;
-static jmethodID CacheJavaObjectMethodID = nullptr;
-static jmethodID RemoveJavaObjectMethodID = nullptr;
+static jmethodID GetLuaAdapterMethodID = nullptr;
+static jmethodID CacheLuaAdapterMethodID = nullptr;
+static jmethodID RemoveLuaAdapterMethodID = nullptr;
 
 static jmethodID LuaHandlerCallID = nullptr;
 static jmethodID LuaObjectAdapterHasMethodMethodID = nullptr;
@@ -168,11 +168,11 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
     LuaObjectAdapterCallMethodID = env->GetMethodID(LuaObjectAdapterClass,
             "call", "(Ljava/lang/String;Ltop/lizhistudio/androidlua/LuaContext;)I");
 
-    GetJavaObjectMethodID = env->GetMethodID(LuaContextClass, "getJavaObject",
-                                                "(J)Ljava/lang/Object;");
-    CacheJavaObjectMethodID = env->GetMethodID(LuaContextClass, "cacheJavaObject",
-                                                  "(JLjava/lang/Object;)V");
-    RemoveJavaObjectMethodID = env->GetMethodID(LuaContextClass, "removeJavaObject", "(J)V");
+    GetLuaAdapterMethodID = env->GetMethodID(LuaContextClass, "getLuaAdapter",
+                                             "(J)Ltop/lizhistudio/androidlua/LuaAdapter;");
+    CacheLuaAdapterMethodID = env->GetMethodID(LuaContextClass, "cacheLuaAdapter",
+                                               "(JLtop/lizhistudio/androidlua/LuaAdapter;)V");
+    RemoveLuaAdapterMethodID = env->GetMethodID(LuaContextClass, "releaseLuaAdapter", "(J)V");
 
     onInitializeDisplayContext(env);
     onInitializeThreadContext(env);
@@ -311,7 +311,7 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_toLuaObjectAdapter(JNIEnv 
     if (pID)
     {
         jobject context = GetJavaLuaContext(native_lua);
-        return env->CallObjectMethod(context,GetJavaObjectMethodID,*pID);
+        return env->CallObjectMethod(context, GetLuaAdapterMethodID, *pID);
     }
     throwTypeError(env,toLuaState(native_lua),index,LUA_TUSERDATA);
     return nullptr;
@@ -365,7 +365,7 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_isInteger(JNIEnv *env, jcl
 
 jobject GetJavaObject(lua_State*L,JNIEnv*env,jlong id)
 {
-    jobject result =env->CallObjectMethod(GetJavaLuaContext(L), GetJavaObjectMethodID, id);
+    jobject result =env->CallObjectMethod(GetJavaLuaContext(L), GetLuaAdapterMethodID, id);
     if (catchAndPushJavaThrowable(env,L))
         lua_error(L);
     return result;
@@ -375,7 +375,7 @@ jobject GetJavaObject(lua_State*L,JNIEnv*env,jlong id)
 
 void ReleaseJavaObject(lua_State*L, JNIEnv*env, jlong id)
 {
-    env->CallVoidMethod(GetJavaLuaContext(L), RemoveJavaObjectMethodID, id);
+    env->CallVoidMethod(GetJavaLuaContext(L), RemoveLuaAdapterMethodID, id);
     if (catchAndPushJavaThrowable(env,L))
         lua_error(L);
 }
@@ -470,7 +470,7 @@ static bool pushJavaObject(JNIEnv *env, jlong native_lua, jobject object_wrapper
     jobject context = GetJavaLuaContext(L);
     auto* pId = (jlong*)lua_newuserdata(L,sizeof(jlong));
     *pId = (jlong)lua_topointer(L,-1);
-    env->CallVoidMethod(context, CacheJavaObjectMethodID, *pId, object_wrapper);
+    env->CallVoidMethod(context, CacheLuaAdapterMethodID, *pId, object_wrapper);
     if (env->ExceptionCheck())
     {
         lua_pop(L,1);
@@ -782,8 +782,15 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_injectAutoLua(JNIEnv *env,
                                                                            jlong native_lua,
                                                                            jboolean is_global) {
     lua_State *L = toLuaState(native_lua);
-    injectMode(L,"display",luaopen_display,is_global);
+    injectMode(L,"Display",luaopen_display,is_global);
     injectMode(L,"view",luaopen_view,is_global);
     injectMode(L,"thread",luaopen_thread,is_global);
     injectMode(L,"input",luaopen_input,is_global);
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_createTable(JNIEnv *env, jclass clazz,
+                                                                  jlong native_lua, jint array_size,
+                                                                  jint dictionary_size) {
+    lua_createtable(toLuaState(native_lua),array_size,dictionary_size);
 }

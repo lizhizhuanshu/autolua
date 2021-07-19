@@ -3,11 +3,10 @@ package top.lizhistudio.autolua.core;
 
 import androidx.annotation.NonNull;
 
-import java.util.ArrayList;
+
 
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.LuaFunctionAdapter;
-import top.lizhistudio.androidlua.exception.LuaError;
 import top.lizhistudio.androidlua.exception.LuaRuntimeError;
 import top.lizhistudio.androidlua.exception.LuaTypeError;
 import top.lizhistudio.autolua.core.value.LuaNumber;
@@ -15,37 +14,35 @@ import top.lizhistudio.autolua.core.value.LuaString;
 import top.lizhistudio.autolua.core.value.LuaValue;
 
 public class AutoLuaEngine implements LuaInterpreter{
-    private final LuaContextFactory luaContextFactory;
+    private final RemoteLuaContextManager luaContextManager;
     private LuaContext nowLuaContext;
     private final Object luaContextMutex = new Object();
     private boolean isRunning = false;
-    private Thread workThread = null;
-    private final ArrayList<LuaFunctionAdapter> initializeHandlers;
+    private volatile RUNNING_MODE runningMode;
 
-    public AutoLuaEngine(@NonNull LuaContextFactory luaContextFactory)
-    {
-        this.luaContextFactory = luaContextFactory;
-        initializeHandlers = new ArrayList<>();
+    public enum RUNNING_MODE{
+        AUTO_RELEASE_LUA_CONTEXT,
+        MANUAL_RELEASE_lUA_CONTEXT
     }
 
-    private void onInitializeLuaContextByHandler()
+    public AutoLuaEngine(@NonNull RemoteLuaContextManager luaContextManager,
+                         RUNNING_MODE running_mode)
     {
-        try{
-            synchronized (initializeHandlers)
-            {
-                for (LuaFunctionAdapter functionAdapter:initializeHandlers)
-                {
-                    nowLuaContext.pop(functionAdapter.onExecute(nowLuaContext));
-                }
-            }
-        }catch (LuaError e)
-        {
-            throw e;
-        }catch (Throwable e)
-        {
-            throw new LuaRuntimeError(e);
-        }
+        this.luaContextManager = luaContextManager;
+        this.runningMode = running_mode;
     }
+
+
+    public AutoLuaEngine(@NonNull RemoteLuaContextManager luaContextManager)
+    {
+        this(luaContextManager, RUNNING_MODE.AUTO_RELEASE_LUA_CONTEXT);
+    }
+
+    public void setRunningMode(RUNNING_MODE runningMode)
+    {
+        this.runningMode = runningMode;
+    }
+
 
     private LuaContext prepareLuaContext()
     {
@@ -55,11 +52,9 @@ public class AutoLuaEngine implements LuaInterpreter{
                 throw  new LuaRuntimeError("AutoLua is running");
             if (nowLuaContext == null)
             {
-                nowLuaContext = luaContextFactory.newLuaContext();
-                onInitializeLuaContextByHandler();
+                nowLuaContext = luaContextManager.newLuaContext();
             }
             isRunning = true;
-            workThread = Thread.currentThread();
             return nowLuaContext;
         }
     }
@@ -77,6 +72,8 @@ public class AutoLuaEngine implements LuaInterpreter{
                 return toLuaValues(luaContext,top+1,newTop-top);
             }finally {
                 luaContext.setTop(top);
+                if (runningMode == RUNNING_MODE.AUTO_RELEASE_LUA_CONTEXT)
+                    luaContext.destroy();
             }
 
         }finally {
@@ -129,6 +126,8 @@ public class AutoLuaEngine implements LuaInterpreter{
                 return toLuaValues(luaContext,top+1,newTop-top);
             }finally {
                 luaContext.setTop(top);
+                if (runningMode == RUNNING_MODE.AUTO_RELEASE_LUA_CONTEXT)
+                    luaContext.destroy();
             }
         }finally {
             synchronized (luaContextMutex)
@@ -186,7 +185,7 @@ public class AutoLuaEngine implements LuaInterpreter{
         {
             if (isRunning)
             {
-                workThread.interrupt();
+                nowLuaContext.interrupt();
             }
         }
     }
@@ -206,19 +205,18 @@ public class AutoLuaEngine implements LuaInterpreter{
     }
 
 
-    public boolean addInitializeHandler(LuaFunctionAdapter luaFunctionAdapter)
+    public boolean addInitializeMethod(LuaFunctionAdapter luaFunctionAdapter)
     {
-        synchronized (initializeHandlers)
-        {
-            return initializeHandlers.add(luaFunctionAdapter);
-        }
+        return luaContextManager.addInitializeMethod(luaFunctionAdapter);
     }
 
-    public boolean removeInitializeHandler(LuaFunctionAdapter luaFunctionAdapter)
+    public boolean removeInitializeMethod(LuaFunctionAdapter luaFunctionAdapter)
     {
-        synchronized (initializeHandlers)
-        {
-            return initializeHandlers.remove(luaFunctionAdapter);
-        }
+        return luaContextManager.removeInitializeMethod(luaFunctionAdapter);
+    }
+
+    public void destroy()
+    {
+        luaContextManager.destroy();
     }
 }

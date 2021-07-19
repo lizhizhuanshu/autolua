@@ -19,7 +19,7 @@ import top.lizhistudio.app.App;
 import top.lizhistudio.app.FloatControllerListener;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.ProjectManager;
-import top.lizhistudio.app.core.implement.ProjectManagerImplement;
+import top.lizhistudio.app.core.ProjectManagerImplement;
 import top.lizhistudio.app.view.FloatControllerView;
 
 public class ProjectsFragment extends Fragment {

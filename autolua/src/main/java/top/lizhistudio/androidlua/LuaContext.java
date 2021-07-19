@@ -43,8 +43,9 @@ public interface LuaContext {
     void loadFile(String filePath,CODE_TYPE mode) ;
     void loadBuffer(byte[] code,String chunkName,CODE_TYPE mode);
     void pCall(int argNumber, int resultNumber, int errorFunctionIndex);
+    void createTable(int arraySize,int dictionarySize);
     void destroy();
-
+    void interrupt();
     enum CODE_TYPE{
         TEXT_BINARY(0),TEXT(1),BINARY(2);
         private final int code;

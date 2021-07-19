@@ -7,27 +7,28 @@ import com.immomo.mls.MLSBuilder;
 import com.immomo.mls.MLSEngine;
 
 
-import com.immomo.mls.ScriptStateListener;
 import com.immomo.mls.fun.lt.SIApplication;
 
 import org.luaj.vm2.Globals;
 
-import top.lizhistudio.app.core.implement.ProjectManagerImplement;
-import top.lizhistudio.app.core.implement.UserdataUI;
+import top.lizhistudio.androidlua.LuaContext;
+import top.lizhistudio.androidlua.NotReleaseLuaFunctionAdapter;
+import top.lizhistudio.app.core.ProjectManagerImplement;
+import top.lizhistudio.app.core.UserInterfaceImplement;
+import top.lizhistudio.app.core.UserdataUI;
 import top.lizhistudio.app.provider.GlideImageProvider;
+import top.lizhistudio.app.util.AssetManager;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.autolua.core.RemoteLuaContextManager;
-import top.lizhistudio.autolua.core.SetScriptLoadInitializeHandler;
 
 
 public class App extends Application {
     private static App app;
     private FloatControllerView floatControllerView;
     private AutoLuaEngine autoLuaEngine;
-    private SetScriptLoadInitializeHandler scriptLoadInitializeHandler;
-
+    private volatile String rootPath = null;
     private void initializeAutoLuaEngine()
     {
         RemoteLuaContextManager remoteLuaContextManager = new RemoteLuaContextManager.Builder()
@@ -44,9 +45,28 @@ public class App extends Application {
                     }
                 })
                 .build(this);
-        scriptLoadInitializeHandler = new SetScriptLoadInitializeHandler();
         autoLuaEngine = new AutoLuaEngine(remoteLuaContextManager);
-        autoLuaEngine.addInitializeHandler(scriptLoadInitializeHandler);
+        autoLuaEngine.addInitializeMethod(new NotReleaseLuaFunctionAdapter() {
+            @Override
+            public int onExecute(LuaContext luaContext) throws Throwable {
+                byte[] code = AssetManager.read(App.this,"initialize.lua");
+                luaContext.loadBuffer(code,"initialize", LuaContext.CODE_TYPE.TEXT);
+                luaContext.pCall(0,0,0);
+                String rootPath = App.this.rootPath;
+                if (rootPath != null)
+                {
+                    luaContext.push(rootPath);
+                    luaContext.setGlobal("ROOT_PATH");
+                    luaContext.getGlobal("package");
+                    luaContext.push("path");
+                    luaContext.push(rootPath + "/?.lua;");
+                    luaContext.setTable(-3);
+                    luaContext.pop(1);
+                }
+                return 0;
+            }
+        });
+        autoLuaEngine.addInitializeMethod(UserInterfaceImplement.getDefault().getRegistrar());
     }
 
 
@@ -72,6 +92,7 @@ public class App extends Application {
         initializeMLSEngine();
         initializeAutoLuaEngine();
         floatControllerView = new FloatControllerViewImplement(this,40);
+        UserInterfaceImplement.getDefault().initialize(this);
         ProjectManagerImplement.getInstance().initialize(this);
         log("onCreate: " + Globals.isInit() + " " + Globals.isIs32bit());
     }
@@ -104,10 +125,12 @@ public class App extends Application {
         return autoLuaEngine;
     }
 
-    public void setScriptLoadPath(String path)
+    public void setRootPath(String path)
     {
-        scriptLoadInitializeHandler.setScriptLoadPath(path);
+        rootPath = path;
     }
+
+
 }
 
 

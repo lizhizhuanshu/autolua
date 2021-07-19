@@ -1,4 +1,4 @@
-package top.lizhistudio.app.core.debugger;
+package top.lizhistudio.app.core;
 
 
 import java.io.IOException;

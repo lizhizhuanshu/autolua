@@ -1,4 +1,4 @@
-package top.lizhistudio.app.core.debugger;
+package top.lizhistudio.app.core;
 
 
 
@@ -13,10 +13,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.LuaFunctionAdapter;
+import top.lizhistudio.androidlua.NotReleaseLuaFunctionAdapter;
 import top.lizhistudio.androidlua.Util;
 import top.lizhistudio.app.App;
-import top.lizhistudio.app.core.ProjectManager;
-import top.lizhistudio.app.core.implement.ProjectManagerImplement;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.core.value.LuaValue;
@@ -45,7 +44,7 @@ public class DebuggerServer extends Observable {
 
     private DebuggerServer()
     {
-        LuaFunctionAdapter luaPrintHandler = new LuaFunctionAdapter() {
+        LuaFunctionAdapter luaPrintHandler = new NotReleaseLuaFunctionAdapter() {
             private String getMessage(LuaContext context)
             {
                 StringBuilder builder = new StringBuilder();
@@ -91,7 +90,7 @@ public class DebuggerServer extends Observable {
         };
 
 
-        debuggerInitializeHandler= new LuaFunctionAdapter() {
+        debuggerInitializeHandler= new NotReleaseLuaFunctionAdapter() {
             @Override
             public int onExecute(LuaContext luaContext) throws Throwable {
                 luaContext.push(luaPrintHandler);
@@ -167,14 +166,14 @@ public class DebuggerServer extends Observable {
                 //此处需要注意
                 rootPath = projectPath;
                 interpreter.destroyNowLuaContext();
-                interpreter.addInitializeHandler(debuggerInitializeHandler);
-                App.getApp().setScriptLoadPath(projectPath);
+                interpreter.addInitializeMethod(debuggerInitializeHandler);
+                App.getApp().setRootPath(projectPath);
                 interpreter.executeFile(projectPath + "/" + path,
                         LuaContext.CODE_TYPE.TEXT_BINARY,new LuaInterpreter.Callback() {
                             @Override
                             public void onCallback(LuaValue[] result) {
                                 sendStopped();
-                                interpreter.removeInitializeHandler(debuggerInitializeHandler);
+                                interpreter.removeInitializeMethod(debuggerInitializeHandler);
                             }
                             @Override
                             public void onError(Throwable throwable) {
@@ -183,7 +182,7 @@ public class DebuggerServer extends Observable {
                                 {
                                     throwable.printStackTrace();
                                 }
-                                interpreter.removeInitializeHandler(debuggerInitializeHandler);
+                                interpreter.removeInitializeMethod(debuggerInitializeHandler);
                             }
                 });
             }

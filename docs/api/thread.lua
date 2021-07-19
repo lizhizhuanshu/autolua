@@ -1,15 +1,15 @@
 ---线程对象
-Thread = {}
+thread = {}
 
 ---睡眠一段时间
 ---@param time integer 单位：毫秒
-function Thread.sleep(time)
+function thread.sleep(time)
     
 end
 
 
 ---睡眠一段时间
 ---@param time integer 单位：微秒
-function Thread.usleep(time)
+function thread.usleep(time)
     
 end

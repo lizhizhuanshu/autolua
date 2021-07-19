@@ -1,10 +1,3 @@
----‘userdata’类型的，包含了颜色的二进制数据
----@class ColorFeature
----@field toString fun():string
-
----‘userdata’类型的，包含了一个或多个颜色与坐标数据的二进制数据
----@class CoordColorFeature
----@field toString fun():string
 
 ---可以找图找色的对象
 ---@class Viewable
@@ -185,3 +178,24 @@ end
 function M:isFeatureByShiftColorSum(coordColor,shiftColorSum,canErrorSum)
 end
 
+---@class Screen:Viewable,Display
+
+---@type Screen
+Screen = {}
+
+---返回当前是否保持虚拟屏幕的位图不变
+---@return boolean 保持屏幕的状态
+function Screen:isKeepDisplay()
+    
+end
+
+---是否保持当前虚拟屏幕的位图不变
+---@param is boolean true则保持不变
+function Screen:keepDisplay(is)
+    
+end
+
+---先刷新一下位图内的屏幕数据，然后保持不变
+function Screen:updateAndKeepDisplay()
+    
+end

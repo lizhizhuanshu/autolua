@@ -1,9 +1,7 @@
-package top.lizhistudio.app.core.implement;
+package top.lizhistudio.app.core;
 
 import android.content.Context;
-import android.util.Log;
 
-import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ZipUtils;
 
 import java.io.File;
@@ -13,7 +11,6 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -21,7 +18,6 @@ import java.util.zip.ZipFile;
 
 import top.lizhistudio.app.util.DeleteFileUtil;
 import top.lizhistudio.autolua.debugger.proto.Date;
-import top.lizhistudio.app.core.ProjectManager;
 
 public class ProjectManagerImplement implements ProjectManager {
     private String rootPath = null;

@@ -4,7 +4,10 @@ package top.lizhistudio.autolua.core;
 import android.util.LongSparseArray;
 
 
+import java.util.ArrayList;
+import java.util.Vector;
 
+import top.lizhistudio.androidlua.LuaAdapter;
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.LuaFunctionAdapter;
 import top.lizhistudio.androidlua.LuaObjectAdapter;
@@ -14,8 +17,8 @@ import top.lizhistudio.androidlua.exception.LuaTypeError;
 public class LuaContextImplement implements LuaContext {
     private static final String TAG = "LuaContext";
     private long nativeLua;
-    private final LongSparseArray<Object> objectCache;
-
+    private final LongSparseArray<LuaAdapter> adapterCache;
+    private final ArrayList<Thread> threads = new ArrayList<>();
     static {
         System.loadLibrary("autolua");
     }
@@ -61,12 +64,12 @@ public class LuaContextImplement implements LuaContext {
     static native void setGlobal(long nativeLua,String key);
     static native int getGlobal(long nativeLua,String key);
     static native void pop(long nativeLua, int n);
-
+    static native void createTable(long nativeLua,int arraySize,int dictionarySize);
 
     public LuaContextImplement()
     {
         nativeLua = newLuaState(this);
-        objectCache = new LongSparseArray<>();
+        adapterCache = new LongSparseArray<>();
     }
 
     public void injectAutoLua(boolean isGlobal)
@@ -161,7 +164,18 @@ public class LuaContextImplement implements LuaContext {
 
 
     public void pCall(int argSum, int resultSum, int errorHandlerIndex) {
-        pCall(nativeLua,argSum,resultSum,errorHandlerIndex);
+        try{
+            synchronized (threads)
+            {
+                threads.add(Thread.currentThread());
+            }
+            pCall(nativeLua,argSum,resultSum,errorHandlerIndex);
+        }finally {
+            synchronized (threads)
+            {
+                threads.remove(threads.size()-1);
+            }
+        }
     }
 
 
@@ -185,8 +199,24 @@ public class LuaContextImplement implements LuaContext {
         {
             closeLuaState(nativeLua);
             nativeLua = 0;
-            objectCache.clear();
+            adapterCache.clear();
         }
+    }
+
+    @Override
+    public void interrupt() {
+        synchronized (threads)
+        {
+            for(Thread thread:threads)
+            {
+                thread.interrupt();
+            }
+        }
+    }
+
+    @Override
+    public void createTable(int arraySize, int dictionarySize) {
+        createTable(nativeLua,arraySize,dictionarySize);
     }
 
 
@@ -241,17 +271,22 @@ public class LuaContextImplement implements LuaContext {
 
 
     @NativeLuaUseMethod
-    public void cacheJavaObject(long id, Object o) {
-        objectCache.put(id,o);
+    public void cacheLuaAdapter(long id, LuaAdapter o) {
+        adapterCache.put(id,o);
     }
 
     @NativeLuaUseMethod
-    public Object getJavaObject(long id) {
-        return objectCache.get(id);
+    public LuaAdapter getLuaAdapter(long id) {
+        return adapterCache.get(id);
     }
 
     @NativeLuaUseMethod
-    public void removeJavaObject(long id) {
-        objectCache.remove(id);
+    public void releaseLuaAdapter(long id) {
+        LuaAdapter luaAdapter = getLuaAdapter(id);
+        if (luaAdapter != null)
+        {
+            adapterCache.remove(id);
+            luaAdapter.onRelease();
+        }
     }
 }

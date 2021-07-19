@@ -8,7 +8,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -21,64 +20,72 @@ import top.lizhistudio.autolua.core.rpc.CommonRemoteHost;
 import top.lizhistudio.autolua.core.rpc.Protocol;
 import top.lizhistudio.autolua.core.rpc.RemoteHost;
 import top.lizhistudio.autolua.core.rpc.SourceRemoteHost;
+import top.lizhistudio.autolua.extend.Input;
 
 public class LuaContextManagerProcessor implements RemoteHost.Handler {
-    static final String LUA_CONTEXT_FACTORY_OPTION = "luaContextFactory";
+    static final String INITIALIZE_METHOD_OPTION = "initialize_methods";
+
     static final String RESULT_HEADER = "<start result>";
-    private final LuaContextFactory luaContextFactory;
     private final ObjectCache<LuaContext> luaContextCache;
     private WeakReference<RemoteHost>  remoteHost;
-    private LuaContextManagerProcessor(LuaContextFactory luaContextFactory)
+    private final LuaFunctionAdapter[] initializeMethods;
+    private LuaContextManagerProcessor(LuaFunctionAdapter[] initializeMethods)
     {
-        this.luaContextFactory = luaContextFactory;
+        this.initializeMethods = initializeMethods;
         this.luaContextCache = new ObjectCache<>();
     }
 
-
-    private static LuaContextFactory createLuaContextFactory(String[] args)
+    public static String buildInitializeMethodOption(List<Class<? extends LuaFunctionAdapter>> classes)
     {
-        Options options = new Options();
-        options.addOption(null,LUA_CONTEXT_FACTORY_OPTION,true,"luaContext factory class name");
-        CommandLine commandLine;
-        try {
-            commandLine = new DefaultParser().parse(options,args);
-        }catch (ParseException e)
+        StringBuilder builder = new StringBuilder(INITIALIZE_METHOD_OPTION);
+        builder.append("  ");
+        for (Class<?> clazz:classes)
         {
-            e.printStackTrace(System.err);
-            return null;
+            builder.append(clazz.getName());
+            builder.append(";");
         }
-        if (commandLine.hasOption(LUA_CONTEXT_FACTORY_OPTION))
-        {
-            try{
-                Class<?> clazz = Class.forName(commandLine.getOptionValue(LUA_CONTEXT_FACTORY_OPTION));
-                Constructor<?> constructor = clazz.getConstructor(String[].class);
-                return (LuaContextFactory)constructor.newInstance((Object) args);
-            }catch (Throwable e)
-            {
-                e.printStackTrace(System.err);
-            }
-            return null;
-        }
-        return new LuaContextFactoryImplement(args);
+        return builder.toString();
     }
 
-    private static void printPrepareResult(boolean r)
+
+    private static void printPrepareResult(String r)
     {
         System.out.println(RESULT_HEADER+r);
     }
 
+    private static LuaFunctionAdapter[] initializeMethods(String names)
+            throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        String[] classNames = names.split(";");
+        LuaFunctionAdapter[] result = new LuaFunctionAdapter[classNames.length];
+        for (int i = 0; i < classNames.length; i++) {
+            Class<?> clazz = Class.forName(classNames[i]);
+            result[i] = (LuaFunctionAdapter)clazz.newInstance();
+        }
+        return result;
+    }
 
-    public static void main(String[] args)
-    {
-        LuaContextFactory luaContextFactory = createLuaContextFactory(args);
-        printPrepareResult(luaContextFactory!= null);
-        if (luaContextFactory != null)
-        {
-            LuaContextManagerProcessor handler = new LuaContextManagerProcessor(luaContextFactory);
+    public static void main(String[] args){
+        Options options = new Options();
+        options.addOption(null, INITIALIZE_METHOD_OPTION,
+                true,
+                "initialize lua context class name");
+        try{
+            CommandLine commandLine = new DefaultParser().parse(options,args);
+            LuaFunctionAdapter[] initializeMethods;
+            if (commandLine.hasOption(INITIALIZE_METHOD_OPTION))
+                initializeMethods = initializeMethods(commandLine.getOptionValue(INITIALIZE_METHOD_OPTION));
+            else
+                initializeMethods= new LuaFunctionAdapter[0];
+            LuaContextManagerProcessor handler = new LuaContextManagerProcessor(initializeMethods);
             CommonRemoteHost remoteHost = new SourceRemoteHost();
             remoteHost.setHandler(handler);
             handler.remoteHost = new WeakReference<>(remoteHost);
+            printPrepareResult("true");
             remoteHost.serve();
+        }catch (ParseException |IllegalAccessException|InstantiationException|ClassNotFoundException e)
+        {
+            printPrepareResult(e.getMessage());
+            e.printStackTrace(System.err);
         }
         System.exit(0);
     }
@@ -119,12 +126,10 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
                 break;
             case PUSHLUAFUNCTIONADAPTER:
                 onPushLuaFunctionAdapter(context,
-                        request.getContextID(),
                         request.getPushLuaFunctionAdapter());
                 break;
             case PUSHLUAOBJECTADAPTER:
                 onPushLuaObjectAdapter(context,
-                        request.getContextID(),
                         request.getPushLuaObjectAdapter());
                 break;
             case GETTABLE:
@@ -171,6 +176,12 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
                 break;
             case PCALL:
                 onPCall(context,request.getPCall());
+                break;
+            case CREATETABLE:
+                onCreateTable(context,request.getCreateTable());
+                break;
+            case INTERRUPT:
+                context.interrupt();
                 break;
             case DESTROY:
                 onDestroy(request);
@@ -246,32 +257,30 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
         }
     }
 
-    private void onPushLuaFunctionAdapter(LuaContext context,long contextID,
+    private void onPushLuaFunctionAdapter(LuaContext context,
                                           Protocol.PushLuaFunctionAdapter request)
     {
         long id = request.getId();
         LuaFunctionAdapter luaFunctionAdapter =
-                new LuaFunctionAdapterProxy(contextID,id);
+                new LuaFunctionAdapterProxy(id);
         context.push(luaFunctionAdapter);
     }
 
-    private void onPushLuaObjectAdapter(LuaContext context, long contextID,
+    private void onPushLuaObjectAdapter(LuaContext context,
                                         Protocol.PushLuaObjectAdapter request)
     {
         long id = request.getId();
         List<String> methodNames = request.getMethodNameList();
         LuaObjectAdapterProxy luaObjectAdapterProxy =
-                new LuaObjectAdapterProxy(contextID,id,methodNames);
+                new LuaObjectAdapterProxy(id,methodNames);
         context.push(luaObjectAdapterProxy);
     }
 
 
     private class LuaFunctionAdapterProxy implements LuaFunctionAdapter{
-        private final long contextID;
         private final long id;
-        private LuaFunctionAdapterProxy(long contextID, long id)
+        private LuaFunctionAdapterProxy(long id)
         {
-            this.contextID = contextID;
             this.id = id;
         }
         @Override
@@ -279,7 +288,7 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
             Protocol.CallLuaFunctionAdapter.Builder request = Protocol.CallLuaFunctionAdapter.newBuilder()
                     .setId(id);
             Protocol.Message.Builder builder = Protocol.Message.newBuilder()
-                    .setContextID(contextID)
+                    .setContextID(((MyLuaContext)luaContext).getId())
                     .setCallLuaFunctionAdapter(request);
             return remoteHost.get()
                     .callAndCheckException(builder)
@@ -287,22 +296,20 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
                     .getResult();
         }
 
+
         @Override
-        protected void finalize() throws Throwable {
+        public void onRelease() {
             Protocol.ReleaseLuaFunctionAdapter.Builder request = Protocol.ReleaseLuaFunctionAdapter.newBuilder()
                     .setId(id);
             remoteHost.get().call(Protocol.Message.newBuilder().setReleaseLuaFunctionAdapter(request));
-            super.finalize();
         }
     }
 
     private class LuaObjectAdapterProxy implements LuaObjectAdapter{
-        private final long contextID;
         private final long id;
         private final HashSet<String> methods;
-        private LuaObjectAdapterProxy(long contextID,long id,List<String> methods)
+        private LuaObjectAdapterProxy(long id,List<String> methods)
         {
-            this.contextID = contextID;
             this.id = id;
             this.methods = new HashSet<>(methods);
         }
@@ -322,7 +329,7 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
                     .setId(id)
                     .setMethodName(methodName);
             Protocol.Message.Builder request = Protocol.Message.newBuilder()
-                    .setContextID(contextID)
+                    .setContextID(((MyLuaContext)luaContext).getId())
                     .setCallLuaObjectAdapter(builder);
             return remoteHost.get().callAndCheckException(request)
                     .getCallLuaObjectAdapter()
@@ -335,13 +342,12 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
         }
 
         @Override
-        protected void finalize() throws Throwable {
+        public void onRelease() {
             Protocol.ReleaseLuaObjectAdapter.Builder request = Protocol.ReleaseLuaObjectAdapter.newBuilder()
                     .setId(id);
             Protocol.Message.Builder builder = Protocol.Message.newBuilder()
                     .setReleaseLuaObjectAdapter(request);
             remoteHost.get().call(builder);
-            super.finalize();
         }
     }
 
@@ -452,11 +458,48 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
         context.pCall(request.getArgNumber(),request.getResultNumber(),request.getErrorFunctionIndex());
     }
 
-    private void onCreate(Protocol.Message.Builder response)
+    private void onCreateTable(LuaContext context,
+                               Protocol.CreateTable request)
     {
-        LuaContext context = luaContextFactory.newLuaContext();
-        long id = luaContextCache.add(context);
+        context.createTable(request.getArraySize(),request.getDictionarySize());
+    }
+
+
+    private void onCreate(Protocol.Message.Builder response) throws Throwable {
+        long id = newLuaContext();
         response.setContextID(id);
+    }
+
+
+
+    private long newLuaContext() throws Throwable {
+        MyLuaContext context = new MyLuaContext();
+        context.injectAutoLua(true);
+        context.push(Input.getDefault());
+        context.setGlobal("Input");
+        long id = luaContextCache.add(context);
+        context.setId(id);
+        try{
+            for (LuaFunctionAdapter method:initializeMethods) {
+                method.onExecute(context);
+            }
+        }finally {
+            context.setTop(0);
+        }
+        return id;
+    }
+
+
+    private static class MyLuaContext extends LuaContextImplement{
+        private long id;
+        public long getId()
+        {
+            return id;
+        }
+        public void setId(long id)
+        {
+            this.id = id;
+        }
     }
 
     private void onDestroy(Protocol.Message request)

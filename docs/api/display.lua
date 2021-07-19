@@ -1,5 +1,5 @@
 
----@class Display:Viewable
+---@class Display
 local M = {}
 
 ---屏幕对象，可以获取屏幕数据，找图找色
@@ -58,8 +58,4 @@ function M:isChangeDirection()
     
 end
 
----销毁当前虚拟屏幕
-function M:destroy()
-    
-end
 

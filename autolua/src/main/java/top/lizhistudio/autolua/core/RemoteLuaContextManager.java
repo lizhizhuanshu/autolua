@@ -1,7 +1,7 @@
 package top.lizhistudio.autolua.core;
 
 import android.content.Context;
-import android.util.Log;
+import android.view.contentcapture.DataRemovalRequest;
 
 import androidx.annotation.NonNull;
 
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 
@@ -27,7 +28,7 @@ import top.lizhistudio.autolua.core.rpc.RemoteHost;
 import top.lizhistudio.autolua.core.rpc.SizeProtocol;
 import top.lizhistudio.autolua.core.rpc.Util;
 
-public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFactory{
+public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextManager{
     private final String commandLine;
     private PrintListener outputPrintListener = null;
     private PrintListener errorPrintListener = null;
@@ -38,13 +39,14 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
     private final ObjectCache<LuaFunctionAdapter> luaFunctionAdapterCache;
     private final ObjectCache<LuaObjectAdapter> luaObjectAdapterCache;
     private final ObjectCache<WeakReference<LuaContext>> luaContextCache;
-
+    private final ArrayList<LuaFunctionAdapter> initializeMethods;
     private RemoteLuaContextManager(String commandLine)
     {
         this.commandLine = commandLine;
         luaFunctionAdapterCache = new ObjectCache<>();
         luaObjectAdapterCache = new ObjectCache<>();
         luaContextCache = new ObjectCache<>();
+        initializeMethods = new ArrayList<>();
     }
 
 
@@ -92,6 +94,27 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
         callAndCheckException(Protocol.Message.newBuilder().setContextID(id).setDestroy(request));
     }
 
+    private void onInitializeLuaContext(LuaContext context)
+    {
+        int top = context.getTop();
+        try{
+            synchronized (initializeMethods)
+            {
+                for (LuaFunctionAdapter method:initializeMethods)
+                {
+                    method.onExecute(context);
+                }
+            }
+        }catch (LuaError e)
+        {
+            throw e;
+        }catch (Throwable e)
+        {
+            throw new LuaRuntimeError(e);
+        }finally {
+            context.setTop(top);
+        }
+    }
 
     @Override
     public LuaContext newLuaContext() {
@@ -101,6 +124,7 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
         long contextID = result.getContextID();
         LuaContextProxy luaContextProxy = new LuaContextProxy(contextID);
         luaContextCache.put(contextID,new WeakReference<>(luaContextProxy));
+        onInitializeLuaContext(luaContextProxy);
         return luaContextProxy;
     }
 
@@ -121,7 +145,8 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
         LuaObjectAdapter luaObjectAdapter = luaObjectAdapterCache.get(request.getId());
         String methodName = request.getMethodName();
         int result = luaObjectAdapter.call(methodName,context);
-        response.setCallLuaObjectAdapter(Protocol.CallLuaObjectAdapter.newBuilder().setId(result));
+        response.setCallLuaObjectAdapter(
+                Protocol.CallLuaObjectAdapter.newBuilder().setResult(result));
     }
 
 
@@ -155,6 +180,8 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
             case PCALL:
             case DESTROY:
             case CREATE:
+            case CREATETABLE:
+            case INTERRUPT:
             case MESSAGE_NOT_SET:
                 break;
             case CALLLUAFUNCTIONADAPTER:
@@ -168,16 +195,36 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
                         responseBuilder);
                 break;
             case RELEASELUAFUNCTIONADAPTER:
-                luaFunctionAdapterCache.remove(request.getReleaseLuaFunctionAdapter().getId());
+                LuaFunctionAdapter functionAdapter =
+                        luaFunctionAdapterCache.removeOut(request.getReleaseLuaFunctionAdapter().getId());
+                if (functionAdapter != null)
+                    functionAdapter.onRelease();
                 break;
             case RELEASELUAOBJECTADAPTER:
-                luaObjectAdapterCache.remove(request.getReleaseLuaObjectAdapter().getId());
+                LuaObjectAdapter objectAdapter =
+                        luaObjectAdapterCache.removeOut(request.getReleaseLuaObjectAdapter().getId());
+                if (objectAdapter!=null)
+                    objectAdapter.onRelease();
                 break;
 
         }
     }
 
+    @Override
+    public boolean addInitializeMethod(LuaFunctionAdapter method) {
+        synchronized (initializeMethods)
+        {
+            return initializeMethods.add(method);
+        }
+    }
 
+    @Override
+    public boolean removeInitializeMethod(LuaFunctionAdapter method) {
+        synchronized (initializeMethods)
+        {
+            return initializeMethods.remove(method);
+        }
+    }
 
     private enum STATE{
         PREPARE,
@@ -192,11 +239,12 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
             String str = Util.readLine(is);
             if (str.startsWith(LuaContextManagerProcessor.RESULT_HEADER))
             {
-                if (Boolean.parseBoolean(str.substring(LuaContextManagerProcessor.RESULT_HEADER.length())))
+                str = str.substring(LuaContextManagerProcessor.RESULT_HEADER.length());
+                if (Boolean.parseBoolean(str))
                 {
                     break;
                 }
-                throw new RuntimeException();
+                throw new LuaRuntimeError(str);
             }else if(outputPrintListener != null)
             {
                 outputPrintListener.onPrint(str);
@@ -342,14 +390,15 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
         private String packagePath = null;
         private String scriptPath = null;
         private String processName = null;
-        private String luaContextFactoryName = null;
         private boolean isUse64Bit = false;
         private final StringBuilder otherArgsBuilder;
         private PrintListener outputPrintListener = null;
         private PrintListener errorPrintListener = null;
+        private final ArrayList<Class<? extends LuaFunctionAdapter>> classes;
         public Builder()
         {
             otherArgsBuilder = new StringBuilder();
+            classes = new ArrayList<>();
         }
 
         public Builder outputPrintListener(PrintListener printListener)
@@ -362,6 +411,15 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
         {
             this.errorPrintListener = printListener;
             return this;
+        }
+
+        public Builder addLuaContextInitializeMethod(Class<? extends LuaFunctionAdapter> clazz)
+        {
+            synchronized (classes)
+            {
+                classes.add(clazz);
+                return this;
+            }
         }
 
         public Builder scriptLoadPath(String path)
@@ -382,11 +440,6 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
             return this;
         }
 
-        public Builder luaContextFactory(Class<? extends LuaContextFactory> clazz)
-        {
-            luaContextFactoryName = clazz.getName();
-            return this;
-        }
 
         public Builder append(String arg)
         {
@@ -473,12 +526,9 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
 
             append(command, LuaContextManagerProcessor.class.getName());
 
-            if (luaContextFactoryName != null)
-            {
-                appendArg(command,LuaContextManagerProcessor.LUA_CONTEXT_FACTORY_OPTION,luaContextFactoryName);
-            }
-
-            command.append(otherArgsBuilder.toString());
+            if (classes.size()>0)
+                append(LuaContextManagerProcessor.buildInitializeMethodOption(classes));
+            append(otherArgsBuilder.toString());
             command.append('\n');
             return command.toString();
         }
@@ -778,6 +828,24 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextFa
         @Override
         public void destroy() {
             destroyContext(id);
+        }
+
+        @Override
+        public void interrupt() {
+            Protocol.Interrupt.Builder request = Protocol.Interrupt.newBuilder();
+            callAndCheckException(Protocol.Message.newBuilder()
+                    .setContextID(id)
+                    .setInterrupt(request));
+        }
+
+        @Override
+        public void createTable(int arraySize, int dictionarySize) {
+            Protocol.CreateTable.Builder request = Protocol.CreateTable.newBuilder()
+                    .setArraySize(arraySize)
+                    .setDictionarySize(dictionarySize);
+            callAndCheckException(Protocol.Message.newBuilder()
+                    .setContextID(id)
+                    .setCreateTable(request));
         }
     }
 }

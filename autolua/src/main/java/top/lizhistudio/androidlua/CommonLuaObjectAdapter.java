@@ -1,17 +1,22 @@
 package top.lizhistudio.androidlua;
 
-import androidx.annotation.NonNull;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommonLuaObjectAdapter implements LuaObjectAdapter{
-    private final Object o;
 
-    public CommonLuaObjectAdapter(@NonNull Object o)
+
+public class CommonLuaObjectAdapter extends NotReleaseLuaObjectAdapter{
+    private final Object o;
+    public CommonLuaObjectAdapter()
     {
-        this.o  = o;
+        o = this;
+    }
+
+    public CommonLuaObjectAdapter(Object o)
+    {
+        this.o = o;
     }
 
     @Override
@@ -45,7 +50,7 @@ public class CommonLuaObjectAdapter implements LuaObjectAdapter{
 
     @Override
     public int call(String methodName, LuaContext luaContext) throws Throwable {
-        Class<?> clazz = o.getClass();
+        Class<?> clazz = this.getClass();
         Method method = clazz.getMethod(methodName,LuaContext.class);
         Object result = method.invoke(o,luaContext);
         return (int)result;

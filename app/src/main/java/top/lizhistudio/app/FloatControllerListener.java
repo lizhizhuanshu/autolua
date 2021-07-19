@@ -7,7 +7,7 @@ import com.immomo.mls.MLSEngine;
 import com.immomo.mls.global.LVConfigBuilder;
 
 import top.lizhistudio.androidlua.LuaContext;
-import top.lizhistudio.app.core.implement.ProjectManagerImplement;
+import top.lizhistudio.app.core.ProjectManagerImplement;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.autolua.core.LuaInterpreter;
 import top.lizhistudio.autolua.core.value.LuaValue;
@@ -40,7 +40,7 @@ public class FloatControllerListener implements FloatControllerView.OnClickListe
                     .setCacheDir(App.getApp().getCacheDir().getAbsolutePath())
                     .setGlobalResourceDir(projectPath+"/resource").build());
             luaInterpreter.destroyNowLuaContext();
-            App.getApp().setScriptLoadPath(projectPath);
+            App.getApp().setRootPath(projectPath);
             floatControllerView.setState(FloatControllerView.EXECUTEING_STATE);
             luaInterpreter.executeFile(
                     projectPath + "/main.lua",

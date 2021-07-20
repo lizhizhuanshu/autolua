@@ -1,5 +1,6 @@
 package top.lizhistudio.app.activity.ui.project;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,12 +16,10 @@ import androidx.fragment.app.Fragment;
 
 import com.immomo.mls.utils.MainThreadExecutor;
 
-import top.lizhistudio.app.App;
-import top.lizhistudio.app.FloatControllerListener;
+import top.lizhistudio.app.AutoLuaService;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.core.ProjectManagerImplement;
-import top.lizhistudio.app.view.FloatControllerView;
 
 public class ProjectsFragment extends Fragment {
     private LinearLayout projectsView;
@@ -31,7 +30,6 @@ public class ProjectsFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_project, container, false);
         projectsView = root.findViewById(R.id.projects);
-        App.getApp().getFloatControllerView().conceal();
         projectManager = ProjectManagerImplement.getInstance();
         observer = new ProjectManager.Observer() {
             @Override
@@ -80,9 +78,10 @@ public class ProjectsFragment extends Fragment {
         startProject.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FloatControllerView controllerView = App.getApp().getFloatControllerView();
-                controllerView.setOnClickListener(new FloatControllerListener(name));
-                controllerView.reShow();
+                Intent intent = new Intent(getContext(), AutoLuaService.class);
+                String path = ProjectManagerImplement.getInstance().getProjectPath(name);
+                intent.putExtra("projectPath",path);
+                getActivity().startService(intent);
                 getActivity().finish();
             }
         });

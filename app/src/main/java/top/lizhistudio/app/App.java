@@ -26,50 +26,6 @@ import top.lizhistudio.autolua.core.RemoteLuaContextManager;
 
 public class App extends Application {
     private static App app;
-    private FloatControllerView floatControllerView;
-    private AutoLuaEngine autoLuaEngine;
-    private volatile String rootPath = null;
-    private void initializeAutoLuaEngine()
-    {
-        RemoteLuaContextManager remoteLuaContextManager = new RemoteLuaContextManager.Builder()
-                .outputPrintListener(new RemoteLuaContextManager.PrintListener() {
-                    @Override
-                    public void onPrint(String message) {
-                        Log.d("AutoLuaEngine",message);
-                    }
-                })
-                .errorPrintListener(new RemoteLuaContextManager.PrintListener() {
-                    @Override
-                    public void onPrint(String message) {
-                        Log.e("AutoLuaEngine",message);
-                    }
-                })
-                .build(this);
-        autoLuaEngine = new AutoLuaEngine(remoteLuaContextManager);
-        autoLuaEngine.addInitializeMethod(new NotReleaseLuaFunctionAdapter() {
-            @Override
-            public int onExecute(LuaContext luaContext) throws Throwable {
-                byte[] code = AssetManager.read(App.this,"initialize.lua");
-                luaContext.loadBuffer(code,"initialize", LuaContext.CODE_TYPE.TEXT);
-                luaContext.pCall(0,0,0);
-                String rootPath = App.this.rootPath;
-                if (rootPath != null)
-                {
-                    luaContext.push(rootPath);
-                    luaContext.setGlobal("ROOT_PATH");
-                    luaContext.getGlobal("package");
-                    luaContext.push("path");
-                    luaContext.push(rootPath + "/?.lua;");
-                    luaContext.setTable(-3);
-                    luaContext.pop(1);
-                }
-                return 0;
-            }
-        });
-        autoLuaEngine.addInitializeMethod(UserInterfaceImplement.getDefault().getRegistrar());
-    }
-
-
     private void initializeMLSEngine()
     {
         /// -----------配合 Application 使用------------
@@ -90,8 +46,6 @@ public class App extends Application {
         super.onCreate();
         app = this;
         initializeMLSEngine();
-        initializeAutoLuaEngine();
-        floatControllerView = new FloatControllerViewImplement(this,40);
         UserInterfaceImplement.getDefault().initialize(this);
         ProjectManagerImplement.getInstance().initialize(this);
         log("onCreate: " + Globals.isInit() + " " + Globals.isIs32bit());
@@ -109,25 +63,8 @@ public class App extends Application {
         return sPackageName;
     }
 
-
     private static void log(String s) {
         Log.d("app", s);
-    }
-
-
-    public FloatControllerView getFloatControllerView()
-    {
-        return floatControllerView;
-    }
-
-    public AutoLuaEngine getAutoLuaEngine()
-    {
-        return autoLuaEngine;
-    }
-
-    public void setRootPath(String path)
-    {
-        rootPath = path;
     }
 
 

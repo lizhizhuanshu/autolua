@@ -7,11 +7,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -20,14 +22,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Autolua">
+        <service
+            android:name=".AutoLuaService"
+            android:enabled="true"
+            android:exported="true"></service>
+        <service
+            android:name=".DebugService"
+            android:enabled="true"
+            android:exported="true" />
+
         <activity
             android:name=".activity.MainActivity"
             android:label="@string/title_activity_main" />
-
-        <service
-            android:name=".MainService"
-            android:enabled="true"
-            android:exported="true" />
 
         <activity
             android:name=".activity.PrepareActivity"

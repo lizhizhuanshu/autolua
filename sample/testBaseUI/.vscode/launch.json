@@ -14,9 +14,9 @@
         },
         {
             "type": "AutoLuaDebugger",
-            "name": "192.168.1.167",
+            "name": "192.168.1.149",
             "request": "launch",
-            "ip": "192.168.1.167",
+            "ip": "192.168.1.149",
             "port": 7777,
             "startFile": "${file}"
         },

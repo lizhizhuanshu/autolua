@@ -59,6 +59,17 @@ public class AutoLuaEngine implements LuaInterpreter{
         }
     }
 
+    private void onDestroyContext()
+    {
+        synchronized (luaContextMutex)
+        {
+            if (nowLuaContext!= null)
+            {
+                nowLuaContext.destroy();
+                nowLuaContext = null;
+            }
+        }
+    }
 
     @Override
     public LuaValue[] execute(byte[] code, String chunkName, LuaContext.CODE_TYPE code_type) {
@@ -73,7 +84,8 @@ public class AutoLuaEngine implements LuaInterpreter{
             }finally {
                 luaContext.setTop(top);
                 if (runningMode == RUNNING_MODE.AUTO_RELEASE_LUA_CONTEXT)
-                    luaContext.destroy();
+                    onDestroyContext();
+
             }
 
         }finally {
@@ -127,7 +139,7 @@ public class AutoLuaEngine implements LuaInterpreter{
             }finally {
                 luaContext.setTop(top);
                 if (runningMode == RUNNING_MODE.AUTO_RELEASE_LUA_CONTEXT)
-                    luaContext.destroy();
+                    onDestroyContext();
             }
         }finally {
             synchronized (luaContextMutex)

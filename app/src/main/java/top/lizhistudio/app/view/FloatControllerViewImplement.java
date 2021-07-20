@@ -25,15 +25,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import top.lizhistudio.app.R;
 
 public class FloatControllerViewImplement extends BroadcastReceiver implements FloatControllerView {
-    private Context context;
     private OnClickListener onClickListener = null;
-    private DisplayMetrics displayMetrics;
-    private WindowManager windowManager;
-    private ImageButton imageButton;
-    private WindowManager.LayoutParams layoutParams;
-    private AtomicBoolean showed;
-    private Handler mainHandler;
-    private IntentFilter filter;
+    private final DisplayMetrics displayMetrics;
+    private final WindowManager windowManager;
+    private final ImageButton imageButton;
+    private final WindowManager.LayoutParams layoutParams;
+    private final AtomicBoolean showed;
+    private final Handler mainHandler;
     private int nowImage;
 
     public FloatControllerViewImplement(Context context, int imageDiameter){
@@ -63,9 +61,8 @@ public class FloatControllerViewImplement extends BroadcastReceiver implements F
         imageButton.setOnTouchListener(listener);
         imageButton.setImageResource(R.mipmap.start);
         mainHandler = new MainHandler(new WeakReference<>(this));
-        this.context = context;
-        filter = new IntentFilter();
-        filter.addAction("android.intent.action.CONFIGURATION_CHANGED");
+//        filter = new IntentFilter();
+//        filter.addAction("android.intent.action.CONFIGURATION_CHANGED");
     }
 
 
@@ -80,23 +77,17 @@ public class FloatControllerViewImplement extends BroadcastReceiver implements F
             layoutParams.x = pixelX;
             layoutParams.y = pixelY;
         }
-        if(showed.get())
-            windowManager.updateViewLayout(imageButton,layoutParams);
-        else{
-            context.registerReceiver( this,filter);
+        if(showed.compareAndSet(false,true))
             windowManager.addView(imageButton,layoutParams);
-            showed.set(true);
-        }
+        else
+            windowManager.updateViewLayout(imageButton,layoutParams);
     }
 
     private void directConceal(){
-        if(showed.get())
+        if (showed.compareAndSet(true,false))
         {
-            context.unregisterReceiver(this);
             windowManager.removeView(imageButton);
-            showed.set(false);
         }
-
     }
 
     private void directSetImage(int id){
@@ -178,6 +169,7 @@ public class FloatControllerViewImplement extends BroadcastReceiver implements F
     public void setOnClickListener(OnClickListener onClick){
         onClickListener = onClick;
     }
+
 
     private final class ControlButtonListener implements View.OnClickListener, View.OnTouchListener
     {

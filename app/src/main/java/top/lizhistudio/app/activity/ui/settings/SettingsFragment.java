@@ -1,6 +1,9 @@
 package top.lizhistudio.app.activity.ui.settings;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -15,21 +18,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.immomo.mls.utils.MainThreadExecutor;
 
-import java.util.Observable;
-import java.util.Observer;
 
+import top.lizhistudio.app.DebugService;
 import top.lizhistudio.app.R;
-import top.lizhistudio.app.core.DebuggerServer;
 
 public class SettingsFragment extends Fragment {
     private final static String ERROR_IP = "未连接wifi";
-    private Observer observer;
     private EditText portEdit;
+    private SwitchCompat switchCompat;
+    private LocalBroadcastManager localBroadcastManager;
+    private BroadcastReceiver debugServiceReceiver;
+    private boolean debugServiceState =false;
     private static String intToIp(int ipInt) {
         StringBuilder sb = new StringBuilder();
         sb.append(ipInt & 0xFF).append(".");
@@ -39,6 +44,18 @@ public class SettingsFragment extends Fragment {
         return sb.toString();
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        localBroadcastManager = LocalBroadcastManager.getInstance(getContext());
+        debugServiceReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                debugServiceState = intent.getBooleanExtra("state",false);
+                switchCompat.setChecked(debugServiceState);
+            }
+        };
+    }
 
     private String getIp()
     {
@@ -79,20 +96,18 @@ public class SettingsFragment extends Fragment {
         textView.setText(getIp());
         portEdit = root.findViewById(R.id.textPort);
         portEdit.setText(getPort());
-        SwitchCompat switchCompat = root.findViewById(R.id.debuggerSwitch);
-        switchCompat.setChecked(DebuggerServer.getInstance().isServing());
-
-
-
+        switchCompat = root.findViewById(R.id.debuggerSwitch);
+        switchCompat.setChecked(debugServiceState);
         switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked)
                 {
-                    int port;
                     try{
-                        port = Integer.parseInt(portEdit.getText().toString());
-                        DebuggerServer.getInstance().start(port);
+                        int port = Integer.parseInt(portEdit.getText().toString());
+                        Intent intent = new Intent(getContext(), DebugService.class);
+                        intent.putExtra("port",port);
+                        getActivity().startService(intent);
                     }catch (Exception e)
                     {
                         switchCompat.setChecked(false);
@@ -100,30 +115,27 @@ public class SettingsFragment extends Fragment {
                     }
                 }else
                 {
-                    DebuggerServer.getInstance().stop();
+                    Intent intent = new Intent(getContext(), DebugService.class);
+                    getActivity().stopService(intent);
                 }
-
             }
         });
-        observer = new Observer() {
-            @Override
-            public void update(Observable o, Object arg) {
-                MainThreadExecutor.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        switchCompat.setChecked((boolean)arg);
-                    }
-                });
-            }
-        };
-        DebuggerServer.getInstance().addObserver(observer);
         return root;
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        localBroadcastManager.unregisterReceiver(debugServiceReceiver);
         savePort();
-        DebuggerServer.getInstance().deleteObserver(observer);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        IntentFilter intentFilter = new IntentFilter(DebugService.STATE_ACTION);
+        localBroadcastManager.registerReceiver(debugServiceReceiver,intentFilter);
+        Intent intent = new Intent(DebugService.ASK_STATE_ACTION);
+        localBroadcastManager.sendBroadcast(intent);
     }
 }

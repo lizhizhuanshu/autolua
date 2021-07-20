@@ -23,8 +23,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import top.lizhistudio.app.AutoLuaService;
+import top.lizhistudio.app.DebugService;
 import top.lizhistudio.app.R;
-import top.lizhistudio.app.core.DebuggerServer;
 import top.lizhistudio.app.core.ProjectManagerImplement;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent,1);
             }
         });
+        Intent intent = new Intent(this, AutoLuaService.class);
+        stopService(intent);
     }
 
     @Override
@@ -91,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
         long time = SystemClock.uptimeMillis();
         if(time - lastBackPressedTime < 3000)
         {
-            DebuggerServer.getInstance().stop();
             finish();
         }else
         {

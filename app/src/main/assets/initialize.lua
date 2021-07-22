@@ -18,8 +18,6 @@ for key, value in pairs(view) do
     Screen[key] = value
 end
 
-display:initialize(0,0)
-
 function Screen:getBaseWidthHeight()
     return display:getBaseWidthHeight()
 end

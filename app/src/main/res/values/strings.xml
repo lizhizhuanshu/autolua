@@ -11,4 +11,5 @@
     <string name="title_project">项目</string>
     <string name="title_settings">设置</string>
     <string name="debuggerSwitch">调试器开关</string>
+    <string name="cancelMediaProjectHint">您拒绝了截取屏幕数据的请求，将无法为您提供调试器的截图请求</string>
 </resources>

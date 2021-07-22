@@ -1,12 +1,13 @@
 // Created by lizhi on 2021/2/21.
 //
-#include "lua/lua.hpp"
+#include "autolua.h"
 #include <cstdlib>
 #include <jni.h>
-#include "display/display.h"
+#include "display.h"
 #include "view/luaview.h"
-#include "thread/thread.h"
+#include "thread.h"
 #include "input/input.h"
+
 
 #define PACKAGE_NAME "top/lizhistudio/autolua"
 #define ANDROID_LUA_PACKAGE_NAME "top/lizhistudio/androidlua"
@@ -18,16 +19,7 @@
 
 #define LUA_OBJECT_ADAPTER_NAME "LuaObjectAdapter"
 #define LUA_FUNCTION_ADAPTER_NAME "LuaFunctionAdapter"
-#define GLOBAL(env, obj) env->NewGlobalRef(obj)
-#define FreeGlobal(env,obj) env->DeleteGlobalRef(obj)
-#define toLuaState(L) ((lua_State*)L)
-#define GetLuaExtension(L) (*((LuaExtension**)lua_getextraspace(L)))
-#define SetLuaExtension(L,p) (*((LuaExtension**)lua_getextraspace(L)) = p)
-#define GetJavaLuaContext(L) ((*((LuaExtension**)lua_getextraspace(L)))->context)
 
-typedef struct {
-    jobject context;
-}LuaExtension;
 
 class LocalJavaString{
     JNIEnv*env;
@@ -98,26 +90,7 @@ public:
 };
 
 
-template<class T>
-class LocalReference
-{
-    JNIEnv*env;
-    T o;
-public:
-    LocalReference(JNIEnv*env,T v)
-    :env(env),o(v)
-    {
-    }
-    ~LocalReference(){
-        if (env && o)
-        {
-            env->DeleteLocalRef((jobject)o);
-        }
-    }
-    T get(){
-        return o;
-    }
-};
+
 
 
 
@@ -133,6 +106,7 @@ static jclass LuaObjectAdapterClass = nullptr;
 static jmethodID GetLuaAdapterMethodID = nullptr;
 static jmethodID CacheLuaAdapterMethodID = nullptr;
 static jmethodID RemoveLuaAdapterMethodID = nullptr;
+static jmethodID GetDisplayMethodID = nullptr;
 
 static jmethodID LuaHandlerCallID = nullptr;
 static jmethodID LuaObjectAdapterHasMethodMethodID = nullptr;
@@ -173,7 +147,7 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
     CacheLuaAdapterMethodID = env->GetMethodID(LuaContextClass, "cacheLuaAdapter",
                                                "(JLtop/lizhistudio/androidlua/LuaAdapter;)V");
     RemoveLuaAdapterMethodID = env->GetMethodID(LuaContextClass, "releaseLuaAdapter", "(J)V");
-
+    GetDisplayMethodID = env->GetMethodID(LuaContextClass,"getDisplay", "()Ltop/lizhistudio/autolua/core/Display;");
     onInitializeDisplayContext(env);
     onInitializeThreadContext(env);
     return  JNI_VERSION_1_6;
@@ -782,10 +756,17 @@ Java_top_lizhistudio_autolua_core_LuaContextImplement_injectAutoLua(JNIEnv *env,
                                                                            jlong native_lua,
                                                                            jboolean is_global) {
     lua_State *L = toLuaState(native_lua);
-    injectMode(L,"Display",luaopen_display,is_global);
-    injectMode(L,"view",luaopen_view,is_global);
-    injectMode(L,"thread",luaopen_thread,is_global);
-    injectMode(L,"input",luaopen_input,is_global);
+    jobject context = GetJavaLuaContext(L);
+    LocalReference<jobject> display(env,env->CallObjectMethod(context,GetDisplayMethodID));
+    if(!env->ExceptionCheck())
+    {
+        pushDisplayObject(L,display.get());
+        lua_setglobal(L,"Display");
+        injectMode(L,"view",luaopen_view,is_global);
+        injectMode(L,"thread",luaopen_thread,is_global);
+        injectMode(L,"input",luaopen_input,is_global);
+    }
+
 }
 extern "C"
 JNIEXPORT void JNICALL

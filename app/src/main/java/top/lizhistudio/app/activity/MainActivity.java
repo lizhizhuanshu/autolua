@@ -24,11 +24,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import top.lizhistudio.app.AutoLuaService;
-import top.lizhistudio.app.DebugService;
 import top.lizhistudio.app.R;
 import top.lizhistudio.app.core.ProjectManagerImplement;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int EVENT_LOAD =11;
     private long lastBackPressedTime = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent,1);
+                startActivityForResult(intent, EVENT_LOAD);
             }
         });
         Intent intent = new Intent(this, AutoLuaService.class);
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
+        if (requestCode == EVENT_LOAD && resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
             Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。
             new Thread(){
                 @Override

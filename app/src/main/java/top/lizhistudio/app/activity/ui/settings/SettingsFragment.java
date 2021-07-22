@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -24,11 +26,14 @@ import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 
-
+import top.lizhistudio.app.App;
 import top.lizhistudio.app.DebugService;
 import top.lizhistudio.app.R;
+import top.lizhistudio.app.activity.MainActivity;
+import top.lizhistudio.app.activity.PrepareActivity;
 
 public class SettingsFragment extends Fragment {
+    private static final int EVENT_SCREENSHOT = 22;
     private final static String ERROR_IP = "未连接wifi";
     private EditText portEdit;
     private SwitchCompat switchCompat;
@@ -98,16 +103,15 @@ public class SettingsFragment extends Fragment {
         portEdit.setText(getPort());
         switchCompat = root.findViewById(R.id.debuggerSwitch);
         switchCompat.setChecked(debugServiceState);
-        switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switchCompat.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked)
+            public void onClick(View v) {
+                if (switchCompat.isChecked())
                 {
                     try{
-                        int port = Integer.parseInt(portEdit.getText().toString());
-                        Intent intent = new Intent(getContext(), DebugService.class);
-                        intent.putExtra("port",port);
-                        getActivity().startService(intent);
+                        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager)
+                                getContext().getApplicationContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+                        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), EVENT_SCREENSHOT);
                     }catch (Exception e)
                     {
                         switchCompat.setChecked(false);
@@ -118,6 +122,12 @@ public class SettingsFragment extends Fragment {
                     Intent intent = new Intent(getContext(), DebugService.class);
                     getActivity().stopService(intent);
                 }
+            }
+        });
+        switchCompat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
             }
         });
         return root;
@@ -137,5 +147,19 @@ public class SettingsFragment extends Fragment {
         localBroadcastManager.registerReceiver(debugServiceReceiver,intentFilter);
         Intent intent = new Intent(DebugService.ASK_STATE_ACTION);
         localBroadcastManager.sendBroadcast(intent);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == EVENT_SCREENSHOT)
+        {
+            int port = Integer.parseInt(portEdit.getText().toString());
+            Intent intent = new Intent(getContext(), DebugService.class);
+            intent.putExtra("port",port);
+            intent.putExtra("code",resultCode);
+            intent.putExtra("data",data);
+            getActivity().startService(intent);
+        }
     }
 }

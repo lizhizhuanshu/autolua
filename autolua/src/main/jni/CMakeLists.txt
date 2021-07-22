@@ -8,16 +8,12 @@ add_definitions(-DLUA_DL_DLOPEN -DLUA_COMPAT_5_3 -DLUA_USE_LINUX)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/lua)
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/display)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/view)
-ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/thread)
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/input)
 
-add_library(autolua SHARED ./autolua.cpp)
+add_library(autolua SHARED ./autolua.cpp ./display.cpp ./thread.cpp)
 
 target_link_libraries(autolua
         lua
-        display
         view
-        thread
         input)

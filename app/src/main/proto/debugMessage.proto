@@ -18,6 +18,8 @@ enum METHOD{
 
   LOG = 11;
   STOPPED=12;
+
+  SCREENSHOT=13;
 }
 
 

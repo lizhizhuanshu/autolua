@@ -4,8 +4,7 @@
 
 #ifndef AUTOLUA2_THREAD_H
 #define AUTOLUA2_THREAD_H
-#include "../luajni.h"
-
+#include "autolua.h"
 void onInitializeThreadContext(JNIEnv*env);
 void onReleaseThreadContext(JNIEnv*env);
 int luaopen_thread(lua_State*L);

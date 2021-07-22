@@ -4,6 +4,8 @@ package top.lizhistudio.autolua.core;
 import android.util.LongSparseArray;
 
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -19,6 +21,7 @@ public class LuaContextImplement implements LuaContext {
     private long nativeLua;
     private final LongSparseArray<LuaAdapter> adapterCache;
     private final ArrayList<Thread> threads = new ArrayList<>();
+    private final Display display;
     static {
         System.loadLibrary("autolua");
     }
@@ -68,6 +71,12 @@ public class LuaContextImplement implements LuaContext {
 
     public LuaContextImplement()
     {
+        this(new DisplayImplement());
+    }
+
+    public LuaContextImplement(@NonNull Display display)
+    {
+        this.display = display;
         nativeLua = newLuaState(this);
         adapterCache = new LongSparseArray<>();
     }
@@ -200,6 +209,7 @@ public class LuaContextImplement implements LuaContext {
             closeLuaState(nativeLua);
             nativeLua = 0;
             adapterCache.clear();
+            display.destroy();
         }
     }
 
@@ -288,5 +298,10 @@ public class LuaContextImplement implements LuaContext {
             adapterCache.remove(id);
             luaAdapter.onRelease();
         }
+    }
+
+    public Display getDisplay()
+    {
+        return display;
     }
 }

@@ -1,5 +1,8 @@
 package top.lizhistudio.app;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,17 +11,34 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
+import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.IBinder;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.google.protobuf.ByteString;
 import com.immomo.mls.MLSEngine;
 import com.immomo.mls.global.LVConfigBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -97,12 +117,25 @@ public class DebugService extends Service {
         startForeground(NOTIFICATION_ID,notification);
     }
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (!isStarted)
         {
             isStarted = true;
             int port = intent.getIntExtra("port",-1);
+            int code = intent.getIntExtra("code", Activity.RESULT_CANCELED);
+            Intent mediaIntent = intent.getParcelableExtra("data");
+            if (code == Activity.RESULT_OK)
+            {
+                MediaProjectionManager mediaProjectionManager =
+                        (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+                mediaProjection = mediaProjectionManager.getMediaProjection(code,mediaIntent);
+            }else
+            {
+                Toast.makeText(this,getString(R.string.cancelMediaProjectHint),Toast.LENGTH_LONG).show();
+            }
+
             if (port != -1)
             {
                 update(true);
@@ -298,11 +331,121 @@ public class DebugService extends Service {
             case DELETE_DIRECTORY:
                 projectManager.deleteDirectory(message.getName(),message.getPath());
                 break;
+            case SCREENSHOT:
+                onScreenshot();
+                break;
             default:
                 throw new RuntimeException("unknown command");
         }
     }
 
+    private MediaProjection mediaProjection = null;
+    private Image oldImage = null;
+
+    private synchronized ByteString getScreenshotData(){
+        if (mediaProjection != null){
+            onPrepareScreenshot();
+            Image image;
+            while (true)
+            {
+                image = imageReader.acquireLatestImage();
+                if (image != null)
+                {
+                    if (oldImage != null)
+                        oldImage.close();
+                    oldImage = image;
+                    break;
+                }
+                if (oldImage != null)
+                {
+                    image = oldImage;
+                    break;
+                }
+                try{
+                    Thread.sleep(10);
+                }catch (InterruptedException e)
+                {
+                    return null;
+                }
+            }
+            Image.Plane plane = image.getPlanes()[0];
+            Bitmap source = Bitmap.createBitmap(
+                    plane.getRowStride()/plane.getPixelStride(),
+                    image.getHeight(),Bitmap.Config.ARGB_8888);
+            plane.getBuffer().clear();
+            source.copyPixelsFromBuffer(plane.getBuffer());
+            Bitmap newMap = Bitmap.createBitmap(source,0,0,width,height);
+            source.recycle();
+            ByteString.Output outputStream = ByteString.newOutput();
+            if (newMap.compress(Bitmap.CompressFormat.PNG,100,outputStream))
+            {
+                newMap.recycle();
+                return outputStream.toByteString();
+            }
+            newMap.recycle();
+        }
+        return null;
+    }
+    private ImageReader imageReader = null;
+    private VirtualDisplay virtualDisplay = null;
+    private int width;
+    private int height;
+    @SuppressLint("WrongConstant")
+    private void onInitializeScreenshot()
+    {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        WindowManager windowManager = (WindowManager) this.getSystemService(WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+        width = displayMetrics.widthPixels;
+        height = displayMetrics.heightPixels;
+        imageReader = ImageReader.newInstance(width,height, PixelFormat.RGBA_8888,2);
+        virtualDisplay = mediaProjection.createVirtualDisplay(
+                "screenshot",width,height,displayMetrics.densityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                imageReader.getSurface(),null,null);
+    }
+
+    private boolean isNeedResetScreenshot()
+    {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        WindowManager windowManager = (WindowManager) this.getSystemService(WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+        return displayMetrics.widthPixels != width || displayMetrics.heightPixels != height;
+    }
+
+    private void onPrepareScreenshot()
+    {
+        if (imageReader == null)
+            onInitializeScreenshot();
+        else if(isNeedResetScreenshot())
+        {
+            releaseScreenShot();
+            onInitializeScreenshot();
+        }
+    }
+
+    private void releaseScreenShot()
+    {
+        if (oldImage != null)
+        {
+            oldImage.close();
+            oldImage = null;
+        }
+        imageReader.close();
+        imageReader = null;
+        virtualDisplay.release();
+        virtualDisplay = null;
+    }
+
+    private void onScreenshot()
+    {
+        DebugMessage.Message.Builder builder = DebugMessage.Message.newBuilder();
+        builder.setMethod(DebugMessage.METHOD.SCREENSHOT);
+        ByteString screenshotData = getScreenshotData();
+        if (screenshotData != null)
+            builder.setData(screenshotData);
+        send(builder.build());
+    }
 
 
     private void run(int port) throws IOException
@@ -310,10 +453,14 @@ public class DebugService extends Service {
         serverSocket = new ServerSocket(port);
         AutoLuaEngine autoLuaEngine =onCreateAutoLuaEngine();
         Thread thread = Thread.currentThread();
+        DebugServerFinder finder = new DebugServerFinder(port);
         try{
             while (!thread.isInterrupted())
             {
+                finder.initialize();
+                finder.start();
                 Socket socket = serverSocket.accept();
+                finder.stop();
                 try{
                     transport = new Transport(socket);
                     while (!thread.isInterrupted())
@@ -333,6 +480,7 @@ public class DebugService extends Service {
             }
         }finally {
             autoLuaEngine.destroy();
+            finder.stop();
             stopSelf();
         }
     }
@@ -400,5 +548,76 @@ public class DebugService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    private static class DebugServerFinder{
+        private final int port;
+        private Thread workThread;
+        private DatagramSocket server;
+        private DebugServerFinder(int port)
+        {
+            this.port = port;
+        }
 
+        public void initialize() throws IOException
+        {
+            server = new DatagramSocket(port);
+
+        }
+
+        private void sendMyAddress(InetAddress inetAddress)
+        {
+            try{
+                byte[] message = "I am AutoLuaClient".getBytes();
+                DatagramPacket packet = new DatagramPacket(message,
+                        message.length,inetAddress,port);
+                DatagramSocket socket = new DatagramSocket();
+                socket.send(packet);
+                socket.close();
+            }catch (IOException e)
+            {
+            }
+
+        }
+
+        public void start()
+        {
+            workThread = new Thread()
+            {
+                @Override
+                public void run() {
+                    byte[] bytes = new byte[1024];
+                    DatagramPacket packet = new DatagramPacket(bytes,bytes.length);
+                    try{
+                        while (!Thread.currentThread().isInterrupted())
+                        {
+                            server.receive(packet);
+                            String message = new String(packet.getData(),0,packet.getLength());
+                            if (message.equals("Where is AutoLuaClient"))
+                            {
+                                sendMyAddress(packet.getAddress());
+                            }
+                        }
+                    }catch (IOException e)
+                    {
+                        Log.e("--------","finder closed");
+                        e.printStackTrace();
+                    }
+                }
+            };
+            workThread.start();
+        }
+
+        public void stop()
+        {
+            if (workThread != null)
+            {
+                workThread.interrupt();
+                workThread = null;
+            }
+            if (server != null)
+            {
+                server.close();
+                server = null;
+            }
+        }
+    }
 }

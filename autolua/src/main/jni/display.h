@@ -4,9 +4,8 @@
 
 #ifndef AUTOLUA2_DISPLAY_H
 #define AUTOLUA2_DISPLAY_H
-#include "../luajni.h"
-
+#include "autolua.h"
 void onInitializeDisplayContext(JNIEnv*env);
 void onReleaseDisplayContext(JNIEnv*env);
-int luaopen_display(lua_State*L);
+void pushDisplayObject(lua_State*L,jobject display);
 #endif //AUTOLUA2_DISPLAY_H

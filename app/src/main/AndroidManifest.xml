@@ -29,7 +29,8 @@
         <service
             android:name=".DebugService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="mediaProjection"/>
 
         <activity
             android:name=".activity.MainActivity"

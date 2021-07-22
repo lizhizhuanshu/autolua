@@ -6,34 +6,8 @@
     "configurations": [
         {
             "type": "AutoLuaDebugger",
-            "name": "192.168.1.154",
+            "name": "AutoLuaDebug",
             "request": "launch",
-            "ip": "192.168.1.154",
-            "port": 8888,
-            "startFile": "${file}"
-        },
-        {
-            "type": "AutoLuaDebugger",
-            "name": "192.168.1.149",
-            "request": "launch",
-            "ip": "192.168.1.149",
-            "port": 7777,
-            "startFile": "${file}"
-        },
-        {
-            "type": "AutoLuaDebugger",
-            "name": "192.168.100.54",
-            "request": "launch",
-            "ip": "192.168.100.54",
-            "port": 8888,
-            "startFile": "${file}"
-        },
-        {
-            "type": "AutoLuaDebugger",
-            "name": "10.0.2.15",
-            "request": "launch",
-            "ip": "10.0.2.15",
-            "port": 7777,
             "startFile": "${file}"
         }
     ]

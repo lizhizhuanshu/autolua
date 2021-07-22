@@ -14,6 +14,8 @@ import android.widget.Toast;
 import com.immomo.mls.MLSEngine;
 import com.immomo.mls.global.LVConfigBuilder;
 
+import java.io.File;
+
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.NotReleaseLuaFunctionAdapter;
 import top.lizhistudio.app.core.UserInterfaceImplement;
@@ -154,15 +156,18 @@ public class AutoLuaService extends Service {
                 luaContext.loadBuffer(code,"initialize", LuaContext.CODE_TYPE.TEXT);
                 luaContext.pCall(0,0,0);
                 String rootPath = AutoLuaService.this.rootPath;
-                if (rootPath != null)
+                luaContext.push(rootPath);
+                luaContext.setGlobal("ROOT_PATH");
+                luaContext.getGlobal("package");
+                luaContext.push("path");
+                luaContext.push(rootPath + "/?.lua;");
+                luaContext.setTable(-3);
+                luaContext.pop(1);
+                File file = new File(rootPath,"initialize.lua");
+                if (file.exists() && file.isFile())
                 {
-                    luaContext.push(rootPath);
-                    luaContext.setGlobal("ROOT_PATH");
-                    luaContext.getGlobal("package");
-                    luaContext.push("path");
-                    luaContext.push(rootPath + "/?.lua;");
-                    luaContext.setTable(-3);
-                    luaContext.pop(1);
+                    luaContext.loadFile(file.getAbsolutePath(), LuaContext.CODE_TYPE.TEXT_BINARY);
+                    luaContext.pCall(0,0,0);
                 }
                 return 0;
             }

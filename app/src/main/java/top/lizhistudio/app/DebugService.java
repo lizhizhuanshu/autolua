@@ -35,6 +35,7 @@ import com.immomo.mls.MLSEngine;
 import com.immomo.mls.global.LVConfigBuilder;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -520,20 +521,23 @@ public class DebugService extends Service {
                 luaContext.loadBuffer(code,"initialize", LuaContext.CODE_TYPE.TEXT);
                 luaContext.pCall(0,0,0);
                 String rootPath = DebugService.this.rootPath;
-                if (rootPath != null)
-                {
-                    luaContext.push(rootPath);
-                    luaContext.setGlobal("ROOT_PATH");
-                    luaContext.getGlobal("package");
-                    luaContext.push("path");
-                    luaContext.push(rootPath + "/?.lua;");
-                    luaContext.setTable(-3);
-                    luaContext.pop(1);
-                }
+                luaContext.push(rootPath);
+                luaContext.setGlobal("ROOT_PATH");
+                luaContext.getGlobal("package");
+                luaContext.push("path");
+                luaContext.push(rootPath + "/?.lua;");
+                luaContext.setTable(-3);
+                luaContext.pop(1);
                 code = AssetManager.read(DebugService.this,"debug.lua");
-                luaContext.loadBuffer(code,"debug", LuaContext.CODE_TYPE.TEXT);
+                luaContext.loadBuffer(code,"debug", LuaContext.CODE_TYPE.TEXT_BINARY);
                 luaContext.push(luaPrintHandler);
                 luaContext.pCall(1,0,0);
+                File file = new File(rootPath,"initialize.lua");
+                if (file.exists() && file.isFile())
+                {
+                    luaContext.loadFile(file.getAbsolutePath(), LuaContext.CODE_TYPE.TEXT_BINARY);
+                    luaContext.pCall(0,0,0);
+                }
                 return 0;
             }
         });

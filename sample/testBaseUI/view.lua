@@ -1,6 +1,6 @@
 local label = Label()
 label:setGravity(Gravity.CENTER)
-label:text(File:rootPath():sub(30))
+label:text("Hello World !")
 label:onClick(function ()
     UI:sendSignal("lizhi",1,2)
 end)

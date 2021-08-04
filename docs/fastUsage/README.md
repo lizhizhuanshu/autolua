@@ -13,9 +13,8 @@
 ![手机设置](setting.jpg)
 3. 你的电脑需要安装VSCode软件
 4. 你的VSCode软件需要安装AutoLuaDebugger插件,在插件商店搜索安装即可
-5. 配置AutoLuaDebugger插件ip地址，端口等，注意这里的设置必须与手机的一致  
-6. VSCode新建一个项目，根据[API](../api/README.md)写一些脚本，或者直接在[例子](../../sample)中下载一个到电脑中，并且用VScode打开
-7. VSCode开始调试
+5. VSCode新建一个项目，根据[API](../api/README.md)写一些脚本，或者直接在[例子](../../sample)中下载一个到电脑中，并且用VScode打开
+6. VSCode开始调试
 ![开始调试](startDebug.gif)  
 这里使用的例子是[testBaseUI](../../sample/testBaseUI)此时手机开始的状态是  
 ![显示了一小块的界面](testUI.jpg)  

@@ -399,7 +399,7 @@ public class DebugService extends Service {
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
         width = displayMetrics.widthPixels;
         height = displayMetrics.heightPixels;
-        imageReader = ImageReader.newInstance(width,height, PixelFormat.RGBA_8888,2);
+        imageReader = ImageReader.newInstance(width,height, PixelFormat.RGBA_8888,3);
         virtualDisplay = mediaProjection.createVirtualDisplay(
                 "screenshot",width,height,displayMetrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,

@@ -121,7 +121,7 @@ int getBaseWidthHeight(lua_State*L)
 {\
     JNIEnv *env = GetJNIEnv(L);\
     auto * display = (Display*)lua_touserdata(L,1);\
-    int result =env->CallIntMethod(DisplayClassID,name##MethodID);\
+    int result =env->CallIntMethod(display->object,name##MethodID);\
     lua_pushinteger(L,result);\
     return 1;\
 }

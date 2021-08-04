@@ -133,6 +133,19 @@ public class Input extends CommonLuaObjectAdapter {
     }
 
 
+    @Override
+    public void onRelease() {
+        for (int i =0;i<=PointersState.MAX_POINTERS;i++)
+        {
+            Pointer pointer = pointersState.get(i);
+            if (pointer != null && !pointer.isUp())
+            {
+                pointer.setUp(true);
+                updateTouch(MotionEvent.ACTION_UP,i,0);
+            }
+        }
+    }
+
     private static final class Default
     {
         private static final Input instance = new Input();

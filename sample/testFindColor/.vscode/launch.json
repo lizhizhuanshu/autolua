@@ -6,10 +6,8 @@
     "configurations": [
         {
             "type": "AutoLuaDebugger",
-            "name": "AutoLua:192.168.1.154",
+            "name": "AutoLuaDebugger",
             "request": "launch",
-            "ip": "192.168.1.154",
-            "port": 8888,
             "startFile": "${file}"
         }
     ]

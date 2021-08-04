@@ -30,6 +30,10 @@ function Screen:getBaseDirection()
     return display:getBaseDirection()
 end
 
+function Screen:getBaseDensity()
+    return display:getBaseDensity()
+end
+
 function Screen:getWidthHeight()
     return display:getWidthHeight()
 end

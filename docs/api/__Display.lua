@@ -2,8 +2,7 @@
 ---@class Display
 local M = {}
 
----屏幕对象，可以获取屏幕数据，找图找色
-Display = M
+
 
 ---获取屏幕初始的宽,高
 ---@return integer 屏幕的宽
@@ -18,7 +17,6 @@ end
 function M:getRotation()
     
 end
-
 
 
 ---获取手机初始状态是横屏还是竖屏

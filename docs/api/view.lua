@@ -22,8 +22,6 @@ local M = {
     }
 }
 
----找图找色相关函数
-view = M
 
 ---位图‘userdata’类型的，包含了二进制图色数据
 ---@class Bitmap
@@ -233,3 +231,4 @@ end
 function M.isFeatureByShiftColorSum(bitmap,coordColor,shiftColorSum,canErrorSum)
 end
 
+return M

@@ -1,4 +1,3 @@
-
 ---可以找图找色的对象
 ---@class Viewable
 local M = {}
@@ -176,26 +175,4 @@ end
 ---@param canErrorSum integer       允许错误的坐标颜色的总数，当对比坐标颜色时允许一定数量的点颜色不符
 ---@return boolean                  是否符合坐标颜色特征
 function M:isFeatureByShiftColorSum(coordColor,shiftColorSum,canErrorSum)
-end
-
----@class Screen:Viewable,Display
-
----@type Screen
-Screen = {}
-
----返回当前是否保持虚拟屏幕的位图不变
----@return boolean 保持屏幕的状态
-function Screen:isKeepDisplay()
-    
-end
-
----是否保持当前虚拟屏幕的位图不变
----@param is boolean true则保持不变
-function Screen:keepDisplay(is)
-    
-end
-
----先刷新一下位图内的屏幕数据，然后保持不变
-function Screen:updateAndKeepDisplay()
-    
 end

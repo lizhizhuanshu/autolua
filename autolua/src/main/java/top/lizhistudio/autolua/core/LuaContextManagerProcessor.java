@@ -37,7 +37,8 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
 
     public static String buildInitializeMethodOption(List<Class<? extends LuaFunctionAdapter>> classes)
     {
-        StringBuilder builder = new StringBuilder(INITIALIZE_METHOD_OPTION);
+        StringBuilder builder = new StringBuilder("--");
+        builder.append(INITIALIZE_METHOD_OPTION);
         builder.append("  ");
         for (Class<?> clazz:classes)
         {

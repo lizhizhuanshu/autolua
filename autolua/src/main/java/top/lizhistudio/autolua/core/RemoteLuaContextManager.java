@@ -1,6 +1,7 @@
 package top.lizhistudio.autolua.core;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.contentcapture.DataRemovalRequest;
 
 import androidx.annotation.NonNull;
@@ -525,10 +526,12 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextMa
 
 
             append(command, LuaContextManagerProcessor.class.getName());
+            if (!classes.isEmpty())
+            {
+                append(command,LuaContextManagerProcessor.buildInitializeMethodOption(classes));
+            }
 
-            if (classes.size()>0)
-                append(LuaContextManagerProcessor.buildInitializeMethodOption(classes));
-            append(otherArgsBuilder.toString());
+            append(command,otherArgsBuilder.toString());
             command.append('\n');
             return command.toString();
         }
@@ -538,6 +541,7 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextMa
         {
             packagePath = context.getPackageCodePath();
             String command = buildCommandLine();
+            Log.d("RemoteLuaContextManager",command);
             RemoteLuaContextManager result = new RemoteLuaContextManager(command);
             result.outputPrintListener = outputPrintListener;
             result.errorPrintListener = errorPrintListener;

@@ -135,7 +135,7 @@ public class Input extends CommonLuaObjectAdapter {
 
     @Override
     public void onRelease() {
-        for (int i =0;i<=PointersState.MAX_POINTERS;i++)
+        for (int i =0;i<pointersState.getSize();i++)
         {
             Pointer pointer = pointersState.get(i);
             if (pointer != null && !pointer.isUp())

@@ -94,4 +94,9 @@ public class PointersState {
             }
         }
     }
+
+    public int getSize()
+    {
+        return pointers.size();
+    }
 }

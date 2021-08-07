@@ -64,3 +64,39 @@ function Screen:updateAndKeepDisplay()
 end
 
 _G.Screen = Screen
+
+
+PageSegMode = {
+    PSM_OSD_ONLY = 0;
+    PSM_AUTO_OSD = 1;
+    PSM_AUTO_ONLY = 2;
+    PSM_AUTO = 3;
+    PSM_SINGLE_COLUMN = 4;
+    PSM_SINGLE_BLOCK_VERT_TEXT = 5;
+    PSM_SINGLE_BLOCK = 6;
+    PSM_SINGLE_LINE = 7;
+    PSM_SINGLE_WORD = 8;
+    PSM_CIRCLE_WORD = 9;
+    PSM_SINGLE_CHAR = 10;
+    PSM_SPARSE_TEXT = 11;
+    PSM_SPARSE_TEXT_OSD = 12;
+    PSM_RAW_LINE = 13;
+}
+
+
+
+OcrEngineMode ={
+    OEM_TESSERACT_ONLY = 0;
+    OEM_CUBE_ONLY = 1;
+    OEM_TESSERACT_CUBE_COMBINED = 2;
+    OEM_DEFAULT = 3;
+}
+
+
+PageIteratorLevel = {
+    RIL_BLOCK = 0;
+    RIL_PARA = 1;
+    RIL_TEXTLINE = 2;
+    RIL_WORD = 3;
+    RIL_SYMBOL = 4;
+}

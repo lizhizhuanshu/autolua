@@ -19,6 +19,7 @@ import java.io.File;
 import top.lizhistudio.androidlua.LuaContext;
 import top.lizhistudio.androidlua.NotReleaseLuaFunctionAdapter;
 import top.lizhistudio.app.core.UserInterfaceImplement;
+import top.lizhistudio.app.extend.TesseractLogger;
 import top.lizhistudio.app.util.AssetManager;
 import top.lizhistudio.app.view.FloatControllerView;
 import top.lizhistudio.app.view.FloatControllerViewImplement;
@@ -147,6 +148,7 @@ public class AutoLuaService extends Service {
                         Log.e("AutoLuaEngine",message);
                     }
                 })
+                .addLuaContextInitializeMethod(TesseractLogger.class)
                 .build(this);
         AutoLuaEngine autoLuaEngine = new AutoLuaEngine(remoteLuaContextManager);
         autoLuaEngine.addInitializeMethod(new NotReleaseLuaFunctionAdapter() {

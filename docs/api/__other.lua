@@ -23,3 +23,15 @@ LayoutParamsFlags = nil
 
 ---@type UI
 UI = nil
+
+---@type TessBaseAPIFactory
+TessBaseAPIFactory = nil
+
+---@type PageSegMode
+PageSegMode = nil
+
+---@type PageIteratorLevel
+PageIteratorLevel = nil
+
+---@type OcrEngineMode
+OcrEngineMode = nil

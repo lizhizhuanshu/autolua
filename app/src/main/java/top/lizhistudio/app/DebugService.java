@@ -50,6 +50,7 @@ import top.lizhistudio.app.core.ProjectManager;
 import top.lizhistudio.app.core.ProjectManagerImplement;
 import top.lizhistudio.app.core.Transport;
 import top.lizhistudio.app.core.UserInterfaceImplement;
+import top.lizhistudio.app.extend.TesseractLogger;
 import top.lizhistudio.app.util.AssetManager;
 import top.lizhistudio.autolua.core.AutoLuaEngine;
 import top.lizhistudio.autolua.core.LuaInterpreter;
@@ -501,6 +502,7 @@ public class DebugService extends Service {
                         Log.e("AutoLuaEngine",message);
                     }
                 })
+                .addLuaContextInitializeMethod(TesseractLogger.class)
                 .build(this);
         AutoLuaEngine autoLuaEngine = new AutoLuaEngine(remoteLuaContextManager);
         LuaFunctionAdapter luaPrintHandler = new NotReleaseLuaFunctionAdapter() {

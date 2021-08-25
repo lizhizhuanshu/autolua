@@ -602,7 +602,6 @@ public class DebugService extends Service {
                         }
                     }catch (IOException e)
                     {
-                        Log.e("--------","finder closed");
                         e.printStackTrace();
                     }
                 }

@@ -1,5 +1,6 @@
 local debugPrint = ...
 local debug = debug
+local oldPrint = print
 function print(...)
     local t= debug.getinfo(2,"Sl")
     local messageTable = {...}

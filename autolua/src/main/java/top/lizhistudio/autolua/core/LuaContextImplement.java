@@ -25,6 +25,16 @@ public class LuaContextImplement implements LuaContext {
     static {
         System.loadLibrary("autolua");
     }
+    /***
+    当lua代码中创建协程,并通过协程调用java端的方法或对象,需要将上下文切换到协程的上下文,并
+    在函数调用完成后交换回去
+     */
+    private long swapNativeLua(long nativeLua)
+    {
+        long r = this.nativeLua;
+        this.nativeLua = nativeLua;
+        return r;
+    }
 
     static native void injectAutoLua(long nativeLua,boolean isGlobal);
 

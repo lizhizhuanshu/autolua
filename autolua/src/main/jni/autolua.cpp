@@ -107,6 +107,7 @@ static jmethodID GetLuaAdapterMethodID = nullptr;
 static jmethodID CacheLuaAdapterMethodID = nullptr;
 static jmethodID RemoveLuaAdapterMethodID = nullptr;
 static jmethodID GetDisplayMethodID = nullptr;
+static jmethodID SwapNativeLuaMethodID = nullptr;
 
 static jmethodID LuaHandlerCallID = nullptr;
 static jmethodID LuaObjectAdapterHasMethodMethodID = nullptr;
@@ -121,6 +122,38 @@ JNIEnv *GetJNIEnv(lua_State*L)
     }
     return env;
 }
+
+
+class LuaSecureContext{
+    long luaState = 0;
+    jobject context;
+    JNIEnv*env;
+public:
+    LuaSecureContext(lua_State*L, JNIEnv*env)
+    :luaState(0),env(env)
+    {
+        context = GetJavaLuaContext(L);
+        luaState = env->CallLongMethod(context,SwapNativeLuaMethodID,(jlong)L);
+    }
+
+    jobject getContext()
+    {
+        return context;
+    }
+
+    ~LuaSecureContext()
+    {
+        if(luaState)
+        {
+            env->CallLongMethod(context,SwapNativeLuaMethodID,luaState);
+        }
+    }
+
+
+};
+
+
+
 
 
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
@@ -148,6 +181,7 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM * vm, void * reserved)
                                                "(JLtop/lizhistudio/androidlua/LuaAdapter;)V");
     RemoveLuaAdapterMethodID = env->GetMethodID(LuaContextClass, "releaseLuaAdapter", "(J)V");
     GetDisplayMethodID = env->GetMethodID(LuaContextClass,"getDisplay", "()Ltop/lizhistudio/autolua/core/Display;");
+    SwapNativeLuaMethodID = env->GetMethodID(LuaContextClass,"swapNativeLua", "(J)J");
     onInitializeDisplayContext(env);
     onInitializeThreadContext(env);
     return  JNI_VERSION_1_6;
@@ -358,12 +392,12 @@ void ReleaseJavaObject(lua_State*L, JNIEnv*env, jlong id)
 static int luaObjectAdapterMethod(lua_State*L)
 {
     JNIEnv *env = GetJNIEnv(L);
-    jobject context = GetJavaLuaContext(L);
+    LuaSecureContext context(L,env);
     const char* methodName = lua_tostring(L,lua_upvalueindex(2));
     LocalReference<jstring> jMethodName(env,env->NewStringUTF(methodName));
     auto * pid = (jlong*)lua_touserdata(L,lua_upvalueindex(1));
     LocalReference<jobject> adapter(env,GetJavaObject(L,env,*pid));
-    jint result = env->CallIntMethod(adapter.get(),LuaObjectAdapterCallMethodID,jMethodName.get(),context);
+    jint result = env->CallIntMethod(adapter.get(),LuaObjectAdapterCallMethodID,jMethodName.get(),context.getContext());
     if (catchAndPushJavaThrowable(env,L) || result == -1)
     {
         lua_error(L);
@@ -458,8 +492,9 @@ static int luaFunctionAdapterCall(lua_State*L)
 {
     JNIEnv *env = GetJNIEnv(L);
     auto * pid = (jlong*)lua_touserdata(L,lua_upvalueindex(1));
+    LuaSecureContext context(L,env);
     LocalReference<jobject> handler (env,GetJavaObject(L,env,*pid));
-    jint result = env->CallIntMethod(handler.get(),LuaHandlerCallID,GetJavaLuaContext(L));
+    jint result = env->CallIntMethod(handler.get(),LuaHandlerCallID,context.getContext());
     if (catchAndPushJavaThrowable(env,L))
         lua_error(L);
     return result;

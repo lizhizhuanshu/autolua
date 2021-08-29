@@ -76,16 +76,15 @@ public class AutoLuaEngine implements LuaInterpreter{
         try{
             LuaContext luaContext = prepareLuaContext();
             int top = luaContext.getTop();
-            luaContext.loadBuffer(code,chunkName,code_type);
-            luaContext.pCall(0,LuaContext.MULTI_RESULT,0);
-            int newTop = luaContext.getTop();
             try{
+                luaContext.loadBuffer(code,chunkName,code_type);
+                luaContext.pCall(0,LuaContext.MULTI_RESULT,0);
+                int newTop = luaContext.getTop();
                 return toLuaValues(luaContext,top+1,newTop-top);
             }finally {
                 luaContext.setTop(top);
                 if (runningMode == RUNNING_MODE.AUTO_RELEASE_LUA_CONTEXT)
                     onDestroyContext();
-
             }
 
         }finally {
@@ -131,10 +130,10 @@ public class AutoLuaEngine implements LuaInterpreter{
         try{
             LuaContext luaContext = prepareLuaContext();
             int top = luaContext.getTop();
-            luaContext.loadFile(path,code_type);
-            luaContext.pCall(0,LuaContext.MULTI_RESULT,0);
-            int newTop = luaContext.getTop();
             try{
+                luaContext.loadFile(path,code_type);
+                luaContext.pCall(0,LuaContext.MULTI_RESULT,0);
+                int newTop = luaContext.getTop();
                 return toLuaValues(luaContext,top+1,newTop-top);
             }finally {
                 luaContext.setTop(top);

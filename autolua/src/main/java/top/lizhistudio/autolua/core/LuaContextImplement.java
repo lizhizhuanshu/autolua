@@ -18,6 +18,7 @@ import top.lizhistudio.androidlua.exception.LuaTypeError;
 
 public class LuaContextImplement implements LuaContext {
     private static final String TAG = "LuaContext";
+    private long mainLua;
     private long nativeLua;
     private final LongSparseArray<LuaAdapter> adapterCache;
     private final ArrayList<Thread> threads = new ArrayList<>();
@@ -88,6 +89,7 @@ public class LuaContextImplement implements LuaContext {
     {
         this.display = display;
         nativeLua = newLuaState(this);
+        mainLua = nativeLua;
         adapterCache = new LongSparseArray<>();
     }
 
@@ -214,10 +216,10 @@ public class LuaContextImplement implements LuaContext {
 
 
     public synchronized void destroy() {
-        if (nativeLua>0)
+        if (mainLua>0)
         {
-            closeLuaState(nativeLua);
-            nativeLua = 0;
+            closeLuaState(mainLua);
+            mainLua = 0;
             adapterCache.clear();
             display.destroy();
         }

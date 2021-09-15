@@ -21,6 +21,7 @@ import top.lizhistudio.autolua.core.rpc.Protocol;
 import top.lizhistudio.autolua.core.rpc.RemoteHost;
 import top.lizhistudio.autolua.core.rpc.SourceRemoteHost;
 import top.lizhistudio.autolua.extend.Input;
+import top.lizhistudio.autolua.uiautomator.UiDriver;
 
 public class LuaContextManagerProcessor implements RemoteHost.Handler {
     static final String INITIALIZE_METHOD_OPTION = "initialize_methods";
@@ -71,6 +72,11 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
                 true,
                 "initialize lua context class name");
         try{
+            if (!UiDriver.getInstance().connect())
+            {
+                printPrepareResult("connect UiAutomator error");
+                return;
+            }
             CommandLine commandLine = new DefaultParser().parse(options,args);
             LuaFunctionAdapter[] initializeMethods;
             if (commandLine.hasOption(INITIALIZE_METHOD_OPTION))
@@ -88,6 +94,7 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
             printPrepareResult(e.getMessage());
             e.printStackTrace(System.err);
         }
+        UiDriver.getInstance().disconnect();
         System.exit(0);
     }
 
@@ -252,6 +259,8 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
             case Z:
                 context.push(request.getZ());
                 break;
+            case INDEX:
+                context.pushValue(request.getIndex());
             case V_NOT_SET:
                 context.pushNil();
                 break;
@@ -478,6 +487,8 @@ public class LuaContextManagerProcessor implements RemoteHost.Handler {
         context.injectAutoLua(true);
         context.push(Input.getDefault());
         context.setGlobal("Input");
+        context.push(UiDriver.getInstance());
+        context.setGlobal("UiDriver");
         long id = luaContextCache.add(context);
         context.setId(id);
         try{

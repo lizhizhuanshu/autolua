@@ -28,3 +28,7 @@ end
 function Input:touchUp(pointerID)
     
 end
+
+function Input:injectKeyEvent(action,code,repeat,metaState)
+    
+end

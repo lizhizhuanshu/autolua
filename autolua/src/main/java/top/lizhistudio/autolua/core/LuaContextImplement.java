@@ -57,7 +57,7 @@ public class LuaContextImplement implements LuaContext {
 
     static native void push(long nativeLua, LuaObjectAdapter objectWrapper);
     static native void push(long nativeLua, LuaFunctionAdapter luaFunctionAdapter);
-
+    static native void pushValue(long nativeLua,int index);
 
     static native void loadBuffer(long nativeLua,byte[] code,String chunkName,int codeType);
     static native void loadFile(long nativeLua, String fileName,int codeType);
@@ -164,12 +164,20 @@ public class LuaContextImplement implements LuaContext {
 
 
     public void push(String v) {
-        push(nativeLua,v.getBytes());
+        if (v!=null)
+            push(nativeLua,v.getBytes());
+        else
+            pushNil();
     }
 
 
     public void pushNil() {
         pushNil(nativeLua);
+    }
+
+    @Override
+    public void pushValue(int index) {
+        pushValue(nativeLua,index);
     }
 
 

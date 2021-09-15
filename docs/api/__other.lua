@@ -23,3 +23,6 @@ LayoutParamsFlags = nil
 
 ---@type UI
 UI = nil
+
+---@type UiDriver
+UiDriver = nil

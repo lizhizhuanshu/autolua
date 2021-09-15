@@ -26,6 +26,7 @@ public interface LuaContext {
     void push(LuaFunctionAdapter v);
     void push(LuaObjectAdapter v);
     void pushNil();
+    void pushValue(int index);
 
     int getTable(int tableIndex);
     void setTable(int tableIndex);

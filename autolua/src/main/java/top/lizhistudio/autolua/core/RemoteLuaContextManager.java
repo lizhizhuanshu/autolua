@@ -684,6 +684,15 @@ public class RemoteLuaContextManager implements RemoteHost.Handler ,LuaContextMa
         }
 
         @Override
+        public void pushValue(int index) {
+            Protocol.PushBaseValue.Builder request = Protocol.PushBaseValue.newBuilder()
+                    .setIndex(index);
+            callAndCheckException(Protocol.Message.newBuilder()
+                    .setContextID(id)
+                    .setPushBaseValue(request));
+        }
+
+        @Override
         public int getTable(int tableIndex) {
             Protocol.GetTable.Builder request = Protocol.GetTable.newBuilder()
                     .setTableIndex(tableIndex);

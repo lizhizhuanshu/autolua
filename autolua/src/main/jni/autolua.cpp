@@ -348,9 +348,12 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_top_lizhistudio_autolua_core_LuaContextImplement_push__J_3B(JNIEnv *env, jclass clazz,
                                                                  jlong native_lua, jbyteArray v) {
-
-    LocalJavaBytes localJavaBytes(env,v);
-    lua_pushlstring(toLuaState(native_lua),localJavaBytes.str(),localJavaBytes.size());
+    if (v){
+        LocalJavaBytes localJavaBytes(env,v);
+        lua_pushlstring(toLuaState(native_lua),localJavaBytes.str(),localJavaBytes.size());
+    } else{
+        lua_pushnil(toLuaState(native_lua));
+    }
 }
 
 extern "C"
@@ -358,6 +361,13 @@ JNIEXPORT void JNICALL
 Java_top_lizhistudio_autolua_core_LuaContextImplement_push__JZ(JNIEnv *env, jclass clazz,
                                                                jlong native_lua, jboolean v) {
     lua_pushboolean(toLuaState(native_lua),v);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_top_lizhistudio_autolua_core_LuaContextImplement_pushValue(JNIEnv *env, jclass clazz,
+                                                                jlong native_lua, jint index) {
+    lua_pushvalue(toLuaState(native_lua),index);
 }
 
 extern "C" JNIEXPORT jint JNICALL

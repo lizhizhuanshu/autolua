@@ -2,7 +2,11 @@ package top.lizhistudio.autolua.extend;
 
 import android.os.SystemClock;
 import android.view.InputDevice;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+
+import java.security.Key;
 
 import top.lizhistudio.androidlua.CommonLuaObjectAdapter;
 import top.lizhistudio.androidlua.LuaContext;
@@ -132,6 +136,22 @@ public class Input extends CommonLuaObjectAdapter {
         return 1;
     }
 
+    public int injectKeyEvent(LuaContext L)
+    {
+        int action = (int)L.toLong(2);
+        int keyCode = (int)L.toLong(3);
+        int repeat = 0;
+        int metaState = 0;
+        if (L.isInteger(4))
+            repeat = (int)L.toLong(4);
+        if (L.isInteger(5))
+            metaState = (int)L.toLong(5);
+        long now = SystemClock.uptimeMillis();
+        KeyEvent event = new KeyEvent(now,now,action,keyCode,repeat,metaState,
+                KeyCharacterMap.VIRTUAL_KEYBOARD,0,0,InputDevice.SOURCE_KEYBOARD);
+        L.push(InputManagerWrap.injectInputEvent(event,2));
+        return 1;
+    }
 
     @Override
     public void onRelease() {

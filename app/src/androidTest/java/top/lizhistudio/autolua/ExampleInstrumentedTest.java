@@ -31,6 +31,9 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("top.lizhistudio.autolua", appContext.getPackageName());
+
+
+
         LayoutParams layoutParams = new LayoutParams();
         layoutParams.width = 1000;
         layoutParams.height = 1000;

@@ -270,7 +270,7 @@ int getColorCount(lua_State* L)
 	{
 		Color color(lua_tointeger(L, 6));
 		count = getColorCount(bitmap, x, y, x1, y1,&color, shift);
-	}else if(lua_isinteger(L,6))
+	}else if(lua_isstring(L,6))
 	{
 		size_t size = 0;
 		const char* str = lua_tolstring(L, 6, &size);
